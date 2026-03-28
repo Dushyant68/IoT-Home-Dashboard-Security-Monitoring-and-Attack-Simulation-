@@ -1,0 +1,851 @@
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║       IoT Home Dashboard — Security Monitoring & Attack Simulation             ║
+║                     COMPLETE INSTALLATION GUIDE                                ║
+║                        From Basics to Full Setup                               ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+GitHub Repo : https://github.com/YOUR_USERNAME/IoT-Home-Dashboard-Security-Monitoring-and-Attack-Simulation-Public
+Last Updated: March 2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TABLE OF CONTENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1.  Project Overview
+  2.  Hardware Requirements
+  3.  Software Requirements
+  4.  System Architecture
+  5.  PART A — Windows Main Machine Setup
+        5.1  Install Git
+        5.2  Install Python
+        5.3  Install Docker Desktop
+        5.4  Install Mosquitto MQTT Broker via Docker
+        5.5  Install Node.js and Node-RED (Local — NOT Docker)
+        5.6  Install Node-RED Palettes
+        5.7  Install Python Libraries
+  6.  PART B — Arduino IDE Setup (ESP32 & STM32)
+        6.1  Install Arduino IDE
+        6.2  Add ESP32 Board Support
+        6.3  Add STM32 Board Support
+        6.4  Install Required Libraries
+        6.5  Upload Code to ESP32
+        6.6  Upload Code to STM32 Blue Pill (via ST-Link)
+  7.  PART C — Pico 2W Setup (MicroPython)
+        7.1  Install Thonny IDE
+        7.2  Flash MicroPython Firmware
+        7.3  Upload pico2w_main.py
+  8.  PART D — STM32 to Pico 2W Wiring (UART Bridge)
+  9.  PART E — Kali Linux (Attack Machine) Setup
+        9.1  Update Kali
+        9.2  Install Required Tools
+        9.3  Setup Project Folder
+        9.4  Configure Attack Scripts
+  10. PART F — Mosquitto MQTT Configuration
+        10.1  Secured Config (normal operation)
+        10.2  Unsecured Config (attack demo)
+        10.3  How to switch between configs
+  11. PART G — Node-RED Dashboard Setup
+        11.1  Access Node-RED
+        11.2  Import Dashboard Flow
+  12. Network Configuration
+  13. Testing the Full System
+  14. Running the Attack Simulation Demo
+  15. Project Folder Structure (GitHub)
+  16. Troubleshooting Common Issues
+  17. Contributors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. PROJECT OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This project is a capstone IoT system that demonstrates:
+
+  → Real-time IoT sensor data monitoring (Temperature, Humidity, Gas, Water)
+  → Remote control of hardware (LEDs, Buzzer, Panic Button) via Node-RED Dashboard
+  → MQTT communication between ESP32, Pico 2W, and STM32 ARM Blue Pill
+  → STM32 (ARM) bridged to Pico 2W via UART — Pico 2W forwards all data to MQTT
+  → IoT Security demonstration: MQTT spoofing attacks and mitigation
+  → Single broker on port 1883 — config is swapped between secured and unsecured
+    to demonstrate vulnerability and mitigation live
+
+Devices Used:
+  - ESP32             → Main IoT node (Temperature, Humidity, Gas, Water, Buzzer, LEDs)
+  - Raspberry Pi Pico 2W → Secondary IoT node + UART bridge for STM32
+  - STM32 Blue Pill   → ARM programming demo (Panic Button, LED, ARM Temp, Heartbeat)
+  - Kali Linux PC     → Attacker machine for security demo
+  - Windows PC        → Main server (Node-RED local, Mosquitto in Docker)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. HARDWARE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [Microcontrollers]
+  ✔ ESP32 Development Board (x1)
+  ✔ Raspberry Pi Pico 2W (x1)
+  ✔ STM32 Blue Pill (F103C8T6) (x1)
+  ✔ ST-Link V2 programmer (for STM32 upload only)
+
+  [Components]
+  ✔ LEDs (x5 minimum) + 220 Ohm Resistors
+  ✔ Push Button Switches (x2 minimum)
+  ✔ Breadboards (x2)
+  ✔ Jumper Wires (Male-Male, Male-Female)
+  ✔ USB Cables for each board
+  ✔ Active Buzzer (for ESP32)
+
+  [Sensors]
+  ✔ DHT11 or DHT22    → Temperature and Humidity
+  ✔ MQ-2 or MQ-135   → Gas / Air Quality Sensor
+  ✔ Water Sensor Module
+  ✔ 16x2 I2C LCD     → Local display (optional)
+
+  [Machines]
+  ✔ Windows Laptop/PC  → Main server machine
+  ✔ Kali Linux Laptop  → Attacker machine (dual boot or native)
+  ✔ Mobile phone       → Hotspot for network (2.4GHz)
+
+  [Network Note]
+  All devices must be on the SAME network.
+  Use a mobile hotspot at 2.4GHz — Pico 2W does NOT support 5GHz.
+  Turn on mobile WiFi and hotspot simultaneously so the phone gets
+  internet from home WiFi while sharing it to other devices via hotspot.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. SOFTWARE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [Windows Machine]
+  ✔ Git                    → https://git-scm.com
+  ✔ Python 3.x             → https://www.python.org/downloads
+  ✔ Docker Desktop         → https://www.docker.com/products/docker-desktop
+  ✔ Node.js LTS            → https://nodejs.org  (required to run Node-RED)
+  ✔ Node-RED               → installed via npm, runs locally (NOT in Docker)
+  ✔ Arduino IDE 2.x        → https://www.arduino.cc/en/software
+  ✔ Thonny IDE             → https://thonny.org
+  ✔ STM32CubeProgrammer    → https://www.st.com/en/development-tools/stm32cubeprog.html
+  ✔ Mosquitto MQTT Broker  → runs in Docker container
+
+  [Python Libraries — Windows]
+  ✔ paho-mqtt
+
+  [Kali Linux Machine]
+  ✔ mosquitto-clients
+  ✔ python3 + pip
+  ✔ paho-mqtt
+  ✔ nmap
+  ✔ wireshark
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. SYSTEM ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [STM32 Blue Pill]
+       | UART (PA9 TX to GP1, PA10 RX to GP0)
+       v
+  [Pico 2W] ──── WiFi MQTT ──────────────────────────────────┐
+  [ESP32]   ──── WiFi MQTT ──────────────────────────────────┤
+                                                              v
+                                             [Docker: Mosquitto Broker]
+                                              Port 1883 — one broker only
+                                              Secured   = normal mode
+                                              Unsecured = attack demo mode
+                                                              |
+                                             [Node-RED — runs locally]
+                                              Start: node-red in CMD
+                                              Port: 1880
+                                                              |
+                                             [Node-RED Dashboard]
+                                              http://localhost:1880/dashboard
+
+  [Kali Linux]  ── spoof_attack.py ────────► [Mosquitto Broker port 1883]
+  (Attack machine) mosquitto_sub/pub            (when in unsecured mode)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. PART A — WINDOWS MAIN MACHINE SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── 5.1 Install Git ──────────────────────────────────────────────────────────────
+
+  1. Go to: https://git-scm.com/download/win
+  2. Download and run the installer (keep default settings)
+  3. Verify in Command Prompt:
+       git --version
+       Expected: git version 2.x.x
+
+── 5.2 Install Python ───────────────────────────────────────────────────────────
+
+  1. Go to: https://www.python.org/downloads
+  2. Download Python 3.11 or later
+  3. During install: CHECK "Add Python to PATH"
+  4. Verify:
+       python --version
+       pip --version
+
+── 5.3 Install Docker Desktop ───────────────────────────────────────────────────
+
+  1. Go to: https://www.docker.com/products/docker-desktop
+  2. Download and install Docker Desktop for Windows
+  3. Restart your PC after installation
+  4. Open Docker Desktop and wait for it to fully start (whale icon in taskbar)
+  5. Verify:
+       docker --version
+       docker ps
+
+── 5.4 Install Mosquitto MQTT Broker via Docker ─────────────────────────────────
+
+  NOTE: Only ONE broker is needed on port 1883.
+        For the attack demo we simply edit the config file and restart.
+        No second broker or second port is required.
+
+  Step 1 — Create folders on Windows for broker data:
+    mkdir C:\Users\YOUR_USERNAME\mosquitto\config
+    mkdir C:\Users\YOUR_USERNAME\mosquitto\data
+    mkdir C:\Users\YOUR_USERNAME\mosquitto\log
+
+  Step 2 — Create the main config file:
+    Path: C:\Users\YOUR_USERNAME\mosquitto\config\mosquitto.conf
+    Start with the SECURED config (see Part F Section 10.1 for exact content)
+
+  Step 3 — Create the ACL file:
+    Path: C:\Users\YOUR_USERNAME\mosquitto\config\acl
+    This is a plain text file with no extension (see Part F for content)
+
+  Step 4 — Run the Mosquitto broker container:
+    docker run -d ^
+      --name mosquitto-broker ^
+      -p 1883:1883 ^
+      --restart unless-stopped ^
+      -v C:\Users\YOUR_USERNAME\mosquitto\config:/mosquitto/config ^
+      -v C:\Users\YOUR_USERNAME\mosquitto\data:/mosquitto/data ^
+      -v C:\Users\YOUR_USERNAME\mosquitto\log:/mosquitto/log ^
+      eclipse-mosquitto
+
+  Step 5 — Create MQTT user and password inside the container:
+    docker exec -it mosquitto-broker mosquitto_passwd -c /mosquitto/config/passwords testuser
+    (Type your password when prompted, e.g. testpass)
+
+  Step 6 — Restart broker to apply:
+    docker restart mosquitto-broker
+
+  Step 7 — Verify it is running:
+    docker ps
+    Should show mosquitto-broker status as "Up"
+
+  Step 8 — Add Windows Firewall rule for port 1883:
+    Press Windows key → search "Windows Defender Firewall"
+    Click Advanced Settings on the left
+    Click Inbound Rules → New Rule on the right
+    Select: Port → Next
+    Select: TCP, enter 1883 → Next
+    Select: Allow the connection → Next
+    Check all three: Domain, Private, Public → Next
+    Name it: MQTT → Finish
+
+── 5.5 Install Node.js and Node-RED (Local — NOT Docker) ────────────────────────
+
+  IMPORTANT: Node-RED is installed and runs LOCALLY on Windows, not in Docker.
+             You start it from Command Prompt each time you need it.
+
+  Step 1 — Install Node.js:
+    Go to: https://nodejs.org
+    Download the LTS version (e.g., 20.x or 22.x)
+    Install with default settings
+    Verify:
+      node --version
+      npm --version
+
+  Step 2 — Install Node-RED globally:
+    Open Command Prompt as Administrator and run:
+      npm install -g --unsafe-perm node-red
+
+  Step 3 — Start Node-RED (run this each time you need it):
+    Open any Command Prompt window and type:
+      node-red
+    Keep this window open while working — closing it stops Node-RED.
+
+  Step 4 — Access Node-RED editor:
+    Open browser → http://localhost:1880
+
+  Step 5 — Access the dashboard:
+    Open browser → http://localhost:1880/dashboard
+
+── 5.6 Install Node-RED Palettes ────────────────────────────────────────────────
+
+  In Node-RED editor (http://localhost:1880):
+  Click the hamburger menu (top right) → Manage palette → Install tab
+
+  Search and install each of the following:
+    @flowfuse/node-red-dashboard   → Dashboard 2.0 widgets
+    node-red-node-ui-table         → Table widget for dashboard
+
+── 5.7 Install Python Libraries ─────────────────────────────────────────────────
+
+  Open Command Prompt:
+    pip install paho-mqtt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. PART B — ARDUINO IDE SETUP (ESP32 & STM32)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── 6.1 Install Arduino IDE ──────────────────────────────────────────────────────
+
+  1. Go to: https://www.arduino.cc/en/software
+  2. Download Arduino IDE 2.x for Windows
+  3. Install and open it
+
+── 6.2 Add ESP32 Board Support ──────────────────────────────────────────────────
+
+  1. Go to: File → Preferences
+  2. In "Additional boards manager URLs" add:
+       https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+  3. Click OK
+  4. Go to: Tools → Board → Boards Manager
+  5. Search "esp32" → Install "esp32 by Espressif Systems"
+
+── 6.3 Add STM32 Board Support ──────────────────────────────────────────────────
+
+  1. Go to: File → Preferences
+  2. Add to Additional boards manager URLs:
+       https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
+  3. Go to: Tools → Board → Boards Manager
+  4. Search "STM32" → Install "STM32 MCU based boards by STMicroelectronics"
+  5. Also install STM32CubeProgrammer from:
+       https://www.st.com/en/development-tools/stm32cubeprog.html
+     (required for SWD upload method)
+
+── 6.4 Install Required Libraries ───────────────────────────────────────────────
+
+  Go to: Tools → Manage Libraries → search and install:
+
+  For ESP32:
+    PubSubClient (by Nick O'Leary)    → MQTT communication
+    DHT sensor library (by Adafruit)  → Temperature and Humidity
+    Adafruit Unified Sensor           → Required by DHT library
+    ArduinoJson                       → JSON data handling
+    LiquidCrystal_I2C                 → I2C LCD display (if using)
+
+  For STM32:
+    PubSubClient (by Nick O'Leary)    → used for MQTT reference in code
+
+── 6.5 Upload Code to ESP32 ─────────────────────────────────────────────────────
+
+  1. Open esp32_main.ino in Arduino IDE
+  2. Update these values at the top of the code:
+       const char* ssid        = "YOUR_HOTSPOT_NAME";
+       const char* password    = "YOUR_HOTSPOT_PASSWORD";
+       const char* mqtt_server = "YOUR_WINDOWS_IP";  (check with ipconfig)
+       const char* mqtt_user   = "testuser";
+       const char* mqtt_pass   = "YOUR_MQTT_PASSWORD";
+  3. Select board: Tools → Board → ESP32 Arduino → your ESP32 model
+  4. Select port: Tools → Port → select the ESP32 COM port
+  5. Click Upload
+  6. Open Serial Monitor (115200 baud) and verify:
+       Should print: Connected to WiFi ... then MQTT Connected
+
+── 6.6 Upload Code to STM32 Blue Pill (via ST-Link) ────────────────────────────
+
+  IMPORTANT: STM32 Blue Pill cannot be programmed over its own USB port.
+             You MUST use the ST-Link V2 programmer with SWD wiring.
+             STM32CubeProgrammer must be installed before uploading.
+
+  ST-Link to Blue Pill wiring:
+    ST-Link    →  Blue Pill
+    ─────────────────────────
+    SWDIO      →  DIO
+    SWCLK      →  CLK
+    GND        →  GND
+    3.3V       →  3V3
+
+  Upload Steps:
+
+  STEP 1 — Set BOOT0 jumper to position 1 (Flash/Upload mode)
+    On the Blue Pill PCB, find the BOOT0 jumper (near the edge).
+    Move it from the 0 position to the 1 position.
+    This puts the chip into bootloader mode so it accepts code upload.
+
+  STEP 2 — Connect ST-Link to your Windows PC via USB.
+    Blue Pill gets its power from the ST-Link 3.3V pin.
+
+  STEP 3 — Configure Arduino IDE settings:
+    Board:         Tools → Board → STM32 boards → Generic STM32F1 series
+    Part Number:   Tools → Board Part Number → BluePill F103C8
+    Upload Method: Tools → Upload Method → STM32CubeProgrammer (SWD)
+
+  STEP 4 — Click Upload in Arduino IDE.
+    Wait for completion message:
+      "File download complete"
+      "Application is running"
+      "Start operation achieved successfully"
+
+  STEP 5 — Set BOOT0 jumper BACK to position 0 (Normal run mode)
+    Move BOOT0 jumper back to 0.
+
+  STEP 6 — Press the RESET button on the Blue Pill.
+    The uploaded code will now start running.
+    The onboard blue LED should blink — confirming the code is active.
+
+  NOTE: There is NO stm32_bridge.py script needed in this project.
+        The Pico 2W acts as the hardware bridge via UART (see Part D).
+        STM32 sends all data through UART to Pico 2W which forwards it to MQTT.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. PART C — PICO 2W SETUP (MicroPython)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── 7.1 Install Thonny IDE ───────────────────────────────────────────────────────
+
+  1. Go to: https://thonny.org
+  2. Download and install for Windows
+  3. Open Thonny
+
+── 7.2 Flash MicroPython Firmware ───────────────────────────────────────────────
+
+  1. Download the MicroPython firmware for Pico 2W (RP2350):
+       https://micropython.org/download/RPI_PICO2_W/
+       Download the latest .uf2 file
+
+  2. Hold the BOOTSEL button on the Pico 2W
+  3. While holding BOOTSEL, plug USB into your PC
+  4. Release BOOTSEL — a removable drive named RPI-RP2 appears
+  5. Drag and drop the .uf2 file into that drive
+  6. Pico reboots automatically — firmware is flashed
+
+  7. In Thonny: Run → Configure interpreter
+       Select: MicroPython (Raspberry Pi Pico)
+       Port: select the Pico COM port
+       Click OK
+
+── 7.3 Upload pico2w_main.py ────────────────────────────────────────────────────
+
+  1. Open pico2w_main.py in Thonny
+  2. Update these values in the code:
+       WIFI_SSID   = "YOUR_HOTSPOT_NAME"
+       WIFI_PASS   = "YOUR_HOTSPOT_PASSWORD"
+       MQTT_BROKER = "YOUR_WINDOWS_IP"
+       MQTT_USER   = "testuser"
+       MQTT_PASS   = "YOUR_MQTT_PASSWORD"
+  3. Go to: File → Save As → Select "Raspberry Pi Pico"
+  4. Save the file as: main.py
+     (Naming it main.py makes it run automatically on every boot)
+  5. Press the Run button or replug the Pico to verify
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. PART D — STM32 TO PICO 2W WIRING (UART BRIDGE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  STM32 has no WiFi. Instead of a bridge script on the PC, the STM32 is
+  wired directly to the Pico 2W using UART serial. Pico 2W reads the serial
+  data and publishes it to MQTT over WiFi.
+
+  Data flow:
+    STM32 Blue Pill → UART → Pico 2W → WiFi → MQTT Broker → Node-RED
+
+  UART Wiring:
+    Blue Pill Pin    →    Pico 2W Pin
+    ──────────────────────────────────────────
+    PA9  (TX)        →    GP1  (Pin 2)   RX on Pico
+    PA10 (RX)        →    GP0  (Pin 1)   TX on Pico
+    GND              →    GND  (Pin 3)
+
+  Important notes:
+    Do NOT connect 3.3V between the boards — each has its own power supply.
+    Blue Pill gets power from ST-Link (3.3V via SWD pins).
+    Pico 2W gets power from its own USB cable.
+    Both boards are 3.3V logic — fully compatible, no level shifter needed.
+    GND of both boards must be connected together (common ground is essential).
+
+  Topics handled via this bridge:
+    arm/panic    → Panic button pressed alert from Blue Pill
+    arm/led      → LED control command from Node-RED to Blue Pill
+    arm/temp     → STM32 internal temperature sensor reading
+    arm/status   → Heartbeat message every few seconds (ONLINE indicator)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. PART E — KALI LINUX SETUP (ATTACK MACHINE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── 9.1 Update Kali ──────────────────────────────────────────────────────────────
+
+  sudo apt update && sudo apt upgrade -y
+
+── 9.2 Install Required Tools ───────────────────────────────────────────────────
+
+  sudo apt install -y mosquitto-clients python3 python3-pip nmap wireshark netcat-traditional
+  pip3 install paho-mqtt --break-system-packages
+
+  Allow Wireshark for non-root:
+    sudo usermod -aG wireshark $USER
+    Log out and back in for this to take effect
+
+── 9.3 Setup Project Folder ─────────────────────────────────────────────────────
+
+  mkdir -p ~/iot-security-demo/logs
+  mkdir -p ~/iot-security-demo/captures
+
+  Copy these files into ~/iot-security-demo/:
+    spoof_attack.py
+    mitigation_test.py
+    security_demo.py
+    demo_script.txt
+
+── 9.4 Configure Attack Scripts ─────────────────────────────────────────────────
+
+  Edit each script to set the correct Windows PC IP:
+    nano ~/iot-security-demo/spoof_attack.py
+      Find: BROKER = "..."
+      Replace with your Windows hotspot IP
+
+    nano ~/iot-security-demo/mitigation_test.py
+      Same change
+
+  To find Windows PC IP from Kali:
+    nmap -sn 192.168.X.0/24
+  Or check on Windows CMD:
+    ipconfig
+    Look for the hotspot adapter IPv4 Address
+
+  NOTE: The IP changes every hotspot session. Always verify before each demo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. PART F — MOSQUITTO MQTT CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  There is only ONE broker running on port 1883.
+  The config file is edited and the broker is restarted to switch modes.
+  There is no second broker or second port needed.
+
+  Config file path (Windows, mapped into Docker as volume):
+    C:\Users\YOUR_USERNAME\mosquitto\config\mosquitto.conf
+
+  ACL file path:
+    C:\Users\YOUR_USERNAME\mosquitto\config\acl
+    (plain text file, no file extension)
+
+── 10.1 Secured Config (Normal Operation) ───────────────────────────────────────
+
+  Use this config during normal system operation and mitigation demo phase.
+
+  mosquitto.conf:
+  ─────────────────────────────────────────────────────────────
+  listener 1883
+  allow_anonymous false
+  password_file /mosquitto/config/passwords
+  acl_file /mosquitto/config/acl
+  persistence true
+  persistence_location /mosquitto/data/
+  log_dest file /mosquitto/log/mosquitto.log
+  log_type all
+  sys_interval 10
+  max_connections 20
+  ─────────────────────────────────────────────────────────────
+
+  ACL file content (file named "acl" with no extension):
+  ─────────────────────────────────────────────────────────────
+  user testuser
+  topic readwrite capstone/#
+  topic readwrite esp32/#
+  topic readwrite arm/#
+  topic read $SYS/#
+  ─────────────────────────────────────────────────────────────
+
+  What this config does:
+    allow_anonymous false  → Nobody connects without username and password
+    acl_file               → Controls which topics each user can access
+    max_connections 20     → Limits connections to block flood attacks
+
+── 10.2 Unsecured Config (Attack Demo Phase) ────────────────────────────────────
+
+  Use this config during the attack simulation phase of the demo.
+
+  mosquitto.conf:
+  ─────────────────────────────────────────────────────────────
+  listener 1883
+  allow_anonymous true
+  password_file /mosquitto/config/passwords
+  persistence true
+  persistence_location /mosquitto/data/
+  log_dest file /mosquitto/log/mosquitto.log
+  log_type all
+  sys_interval 10
+  max_connections 20
+  ─────────────────────────────────────────────────────────────
+
+  What changes compared to secured config:
+    allow_anonymous true   → Anyone connects without credentials
+    acl_file line removed  → No topic restrictions, Kali can publish anywhere
+
+── 10.3 How to Switch Between Configs ───────────────────────────────────────────
+
+  To switch from Secured to Unsecured (before attack demo):
+    1. Open mosquitto.conf in Notepad
+    2. Change:  allow_anonymous false  →  allow_anonymous true
+    3. Delete the entire line:  acl_file /mosquitto/config/acl
+    4. Save the file
+    5. Run in CMD:  docker restart mosquitto-broker
+
+  To switch back from Unsecured to Secured (mitigation phase):
+    1. Open mosquitto.conf in Notepad
+    2. Change:  allow_anonymous true  →  allow_anonymous false
+    3. Add back the line:  acl_file /mosquitto/config/acl
+    4. Save the file
+    5. Run in CMD:  docker restart mosquitto-broker
+
+  NOTE: After restarting the broker, ESP32 and Pico 2W may briefly disconnect
+        and reconnect on their own — this is normal behavior.
+        Wait 5-10 seconds before proceeding with the next demo step.
+
+  CRITICAL: Each config option MUST be on its own separate line.
+            Never let two options end up on the same line — the broker will
+            crash and refuse to start if config lines are merged together.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. PART G — NODE-RED DASHBOARD SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── 11.1 Access Node-RED ─────────────────────────────────────────────────────────
+
+  1. Open Command Prompt on Windows
+  2. Type:  node-red  and press Enter
+  3. Wait for: "Server now running at http://127.0.0.1:1880/"
+  4. Open browser → http://localhost:1880  (editor)
+  5. Dashboard → http://localhost:1880/dashboard
+
+── 11.2 Import Dashboard Flow ───────────────────────────────────────────────────
+
+  1. In Node-RED editor: click the hamburger menu → Import
+  2. Click "select a file to import"
+  3. Select nodered_dashboard.json from the project folder
+  4. Click Import
+  5. Click the red Deploy button (top right)
+  6. Verify dashboard: http://localhost:1880/dashboard
+
+  If MQTT nodes show "connecting" after import:
+    Double-click any MQTT input or output node
+    Click the pencil icon next to the broker name
+    Set Server to: localhost
+    Set Port to: 1883
+    Go to Security tab: enter Username and Password (testuser / your password)
+    Click Update → then Deploy again
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. NETWORK CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Recommended: Mobile hotspot at 2.4GHz
+    Connect Windows PC, Kali laptop, ESP32, and Pico 2W to the same hotspot.
+    Turn on both mobile WiFi (for internet) and hotspot simultaneously.
+
+  Find your Windows IP after connecting to hotspot:
+    ipconfig
+    Look for Wi-Fi adapter → IPv4 Address (e.g., 10.246.143.76)
+
+  Update the IP in these places when it changes:
+    File                  Variable to update
+    ─────────────────────────────────────────
+    esp32_main.ino        mqtt_server
+    pico2w_main.py        MQTT_BROKER
+    spoof_attack.py       BROKER
+    mitigation_test.py    BROKER
+
+  Node-RED MQTT broker: set to localhost (same machine, no IP needed)
+  ESP32 and Pico 2W: set to actual Windows IP (they connect over WiFi)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. TESTING THE FULL SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Before testing: Make sure mosquitto.conf is in SECURED mode.
+
+  STEP 1 — Verify Mosquitto is running:
+    docker ps
+    Should show mosquitto-broker status as Up
+
+  STEP 2 — Start Node-RED:
+    CMD → node-red
+    Browser → http://localhost:1880/dashboard
+
+  STEP 3 — Test MQTT broker (from CMD via Docker):
+    docker exec -it mosquitto-broker mosquitto_sub -h localhost -p 1883 -u testuser -P testpass -t "#" -v
+    If it connects and waits silently — broker is working
+
+  STEP 4 — Power on ESP32:
+    Open Serial Monitor in Arduino IDE (115200 baud)
+    Should print: Connected to WiFi then MQTT Connected
+    Data should start appearing in the subscribe terminal above
+
+  STEP 5 — Power on Pico 2W:
+    Replug USB or reset
+    Thonny shell should print: WiFi connected then MQTT connected
+
+  STEP 6 — Verify STM32 data via Pico 2W bridge:
+    Press Panic button on Blue Pill
+    Should see arm/panic message in the subscribe terminal
+    Dashboard should show the alert
+
+  STEP 7 — Test controls from dashboard:
+    Toggle LED switches on dashboard
+    LEDs on ESP32, Pico 2W, and Blue Pill should respond
+
+  All 7 steps passing means the full system is operational.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. RUNNING THE ATTACK SIMULATION DEMO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Follow demo_script.txt for the complete step-by-step presentation guide.
+
+  QUICK REFERENCE:
+
+  Phase 1 — Normal Operation (broker in secured mode)
+    Show dashboard with live sensor data from all devices.
+    Show LED and buzzer controls working.
+    Show STM32 panic button triggering dashboard alert.
+
+  Phase 2 — Switch broker to unsecured mode:
+    Edit mosquitto.conf → allow_anonymous true, remove acl_file line
+    docker restart mosquitto-broker
+    Wait 5-10 seconds for devices to reconnect
+
+  Phase 3 — Attack: MQTT Spoofing (from Kali):
+    cd ~/iot-security-demo
+    python3 spoof_attack.py
+    Dashboard will show injected fake data — demonstrates the vulnerability
+
+  Phase 4 — Attack: Eavesdropping (from Kali, no credentials needed):
+    mosquitto_sub -h WINDOWS_IP -p 1883 -t "#" -v
+    Shows all MQTT traffic without any password
+
+  Phase 5 — Switch broker back to secured mode:
+    Edit mosquitto.conf → allow_anonymous false, add back acl_file line
+    docker restart mosquitto-broker
+
+  Phase 6 — Mitigation test (from Kali):
+    python3 mitigation_test.py
+    Should return: Connection Refused: not authorised
+    This proves the mitigation works and the attack is now blocked
+
+  Phase 7 — Wireshark demo (on Kali):
+    Open Wireshark → select network interface (wlan0)
+    Filter: tcp.port == 1883
+    Show raw MQTT packets flowing in plaintext to explain why TLS matters
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. PROJECT FOLDER STRUCTURE (GITHUB)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  IoT-Home-Dashboard-Security-Monitoring-and-Attack-Simulation-Public/
+  |
+  |-- README.md
+  |-- INSTALLATION_GUIDE.txt
+  |
+  |-- hardware/
+  |   |-- esp32/
+  |   |   |-- esp32_main.ino
+  |   |-- pico2w/
+  |   |   |-- pico2w_main.py          (also handles STM32 UART bridge)
+  |   |-- stm32/
+  |       |-- stm32_arm_node.ino
+  |
+  |-- node-red/
+  |   |-- nodered_dashboard.json
+  |
+  |-- mqtt/
+  |   |-- mosquitto_secure.conf       (copy content from Section 10.1)
+  |   |-- mosquitto_unsecure.conf     (copy content from Section 10.2)
+  |   |-- acl                         (ACL file — no extension)
+  |
+  |-- security-demo/
+  |   |-- spoof_attack.py
+  |   |-- mitigation_test.py
+  |   |-- security_demo.py
+  |   |-- demo_script.txt
+  |
+  |-- docs/
+      |-- system_architecture.png     (add if available)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16. TROUBLESHOOTING COMMON ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  MQTT Connection Refused
+    Check broker IP in device code matches current hotspot IP (run ipconfig)
+    Check docker ps — mosquitto-broker must show Up
+    Verify username/password matches what was set with mosquitto_passwd
+    Check Windows Firewall has inbound rule for port 1883 (TCP, all profiles)
+
+  Broker crashes / shuts down immediately after docker restart
+    Open mosquitto.conf and check every option is on its own separate line
+    Common mistake: two options merged on one line like "max_connections 20acl_file..."
+    Check logs: docker logs mosquitto-broker --tail 30
+    Fix the line, save, then run docker restart mosquitto-broker
+
+  Node-RED MQTT nodes stuck on connecting
+    Double-click MQTT node → pencil icon → Server: localhost, Port: 1883
+    Go to Security tab → enter testuser and your password → Update → Deploy
+    Make sure the broker container is running (docker ps)
+
+  ESP32 not connecting to WiFi
+    Double-check ssid and password (case-sensitive)
+    Make sure hotspot is 2.4GHz — ESP32 may also struggle with some 5GHz hotspots
+    Re-upload code after confirming the correct IP
+
+  Pico 2W not detected in Thonny
+    Hold BOOTSEL and reconnect USB cable
+    Try a different USB cable (some cables are charge-only with no data lines)
+    In Thonny: Run → Configure interpreter → re-select the Pico COM port
+
+  STM32 upload failed
+    Confirm BOOT0 jumper is at position 1 before uploading
+    Check ST-Link wiring: SWDIO, SWCLK, GND, 3.3V all connected
+    Confirm STM32CubeProgrammer is installed
+    Select correct upload method: Tools → Upload Method → STM32CubeProgrammer (SWD)
+    Press the Reset button on Blue Pill just before clicking Upload in Arduino IDE
+
+  STM32 not sending data after upload
+    Confirm BOOT0 is back to position 0 after upload
+    Press RESET button on Blue Pill
+    Verify UART wiring: Blue Pill PA9 → Pico GP1, Blue Pill PA10 → Pico GP0
+    Both boards must share a common GND wire
+
+  Attack script not working from Kali
+    Confirm mosquitto.conf is in unsecured mode (allow_anonymous true)
+    Confirm docker restart mosquitto-broker was run after config change
+    Ping Windows IP from Kali: ping WINDOWS_IP
+    Update BROKER variable in scripts to current Windows IP
+
+  Hotspot IP changed and nothing connects
+    Run ipconfig on Windows to find new IP
+    Update mqtt_server in esp32_main.ino and re-upload
+    Update MQTT_BROKER in pico2w_main.py and re-save to Pico
+    Update BROKER in Kali scripts
+    Node-RED broker stays as localhost — no change needed there
+
+  node-red command not found in CMD
+    Make sure Node.js was installed and npm global folder is in PATH
+    Try: npx node-red
+    Or reinstall Node.js and reopen CMD
+
+  Docker commands not found
+    Open Docker Desktop app first and wait for it to fully start
+    Run Command Prompt as Administrator
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+17. CONTRIBUTORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Name                    Role
+  ────────────────────────────────────────────────────────
+                        | ESP32 and Sensor Programming
+                        | Pico 2W MicroPython and STM32 Bridge
+                        | STM32 ARM Programming
+                        | Node-RED Dashboard and MQTT Setup
+                        | Security Demo and Kali Linux
+                        | Report and Documentation
+
+  Supervisor  : [Your Supervisor Name]
+  Institution : [Your College/University Name]
+  Academic Year: 2025-2026
+
+══════════════════════════════════════════════════════════════════════════════════
+                          END OF INSTALLATION GUIDE
+══════════════════════════════════════════════════════════════════════════════════
