@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+.env
+
+# MicroPython compiled files
+*.mpy
+
+# Arduino build output
+build/
+*.elf
+*.hex
+*.bin
+*.map
+
+# Node-RED local data (not for repo)
+.node-red/
+node_modules/
+
+# Windows junk
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS junk
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Sensitive — never commit these
+passwords
+passwords.txt
+*.key
+*.pem
+secrets.py
+config_local.*
