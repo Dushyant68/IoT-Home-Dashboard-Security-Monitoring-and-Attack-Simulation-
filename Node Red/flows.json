@@ -1,0 +1,1498 @@
+[
+    {
+        "id": "39e0ca4ca3b5ecae",
+        "type": "tab",
+        "label": "Smart Home Monitor",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "1b5e6b4c3f55f36a",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ESP32 Temp",
+        "topic": "esp32/temp",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 120,
+        "y": 100,
+        "wires": [
+            [
+                "90e0f35615dc917e"
+            ]
+        ]
+    },
+    {
+        "id": "90e0f35615dc917e",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Temp Anomaly",
+        "func": "var c=parseFloat(msg.payload);\nvar l=flow.get('lastTemp');\nif(l!=null&&Math.abs(c-l)>10){\n  var a={payload:'['+new Date().toLocaleTimeString()+'] ANOMALY: Temp jumped '+Math.abs(c-l).toFixed(1)+'C ('+l+'>'+c+') — Possible spoofing!',topic:'ANOMALY'};\n  flow.set('lastTemp',c);\n  return[msg,a];\n}\nflow.set('lastTemp',c);\nreturn[msg,null];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 100,
+        "wires": [
+            [
+                "3cbd8e23d488d25e",
+                "8c71c2e588fe81d8",
+                "0a518f9edf12c7e6",
+                "13e218bdb9acb7d9"
+            ],
+            [
+                "3c2cb30f044a0f6a",
+                "af26c8ece2935bca",
+                "db282998ef480225"
+            ]
+        ]
+    },
+    {
+        "id": "3cbd8e23d488d25e",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "defb82e408edecfc",
+        "page": "",
+        "ui": "",
+        "name": "Temp Card",
+        "order": 1,
+        "width": "3",
+        "height": "4",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;\">\n    <div style=\"font-size:14px;color:#888;font-weight:500;\">🌡️ Temperature</div>\n    <div style=\"font-size:52px;font-weight:800;line-height:1;\" :style=\"{color:c}\">{{msg.payload}}</div>\n    <div style=\"font-size:18px;color:#aaa;\">°C</div>\n    <div style=\"width:80%;height:8px;background:#eee;border-radius:4px;overflow:hidden;\">\n      <div :style=\"{width:w,background:c,height:'100%',borderRadius:'4px',transition:'width 0.5s'}\"></div>\n    </div>\n    <div style=\"display:flex;justify-content:space-between;width:80%;font-size:11px;color:#bbb;\"><span>0</span><span>60°C</span></div>\n  </div>\n</template>\n<script>\nexport default{computed:{c(){var v=parseFloat(this.msg.payload);return v<15?'#1565c0':v<22?'#42a5f5':v<30?'#43a047':v<38?'#fb8c00':'#e53935';},w(){return Math.min(Math.max(parseFloat(this.msg.payload)||0,0),60)/60*100+'%';}}}\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 540,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8c71c2e588fe81d8",
+        "type": "ui-chart",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "defb82e408edecfc",
+        "name": "Temp Chart",
+        "label": "",
+        "order": 2,
+        "chartType": "line",
+        "category": "Temperature",
+        "categoryType": "str",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "HH:mm:ss",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "°C",
+        "yAxisProperty": "",
+        "yAxisPropertyType": "property",
+        "ymin": 0,
+        "ymax": 60,
+        "bins": "",
+        "action": "append",
+        "stackSeries": false,
+        "pointRadius": "2",
+        "showLegend": false,
+        "removeOlder": "1",
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "30",
+        "colors": [
+            "#1565c0",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "4",
+        "className": "",
+        "interpolation": "linear",
+        "x": 540,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b6f1b18a05a7ba63",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ESP32 Hum",
+        "topic": "esp32/hum",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "2105e7feaf8df1a5",
+                "79058182ca585d29",
+                "0a518f9edf12c7e6",
+                "75c0ca2aed4c2980"
+            ]
+        ]
+    },
+    {
+        "id": "2105e7feaf8df1a5",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "ac2d5eb7a27657d4",
+        "name": "Hum Card",
+        "order": 1,
+        "width": "3",
+        "height": "4",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;\">\n    <div style=\"font-size:14px;color:#888;font-weight:500;\">💧 Humidity</div>\n    <div style=\"font-size:52px;font-weight:800;line-height:1;\" :style=\"{color:c}\">{{msg.payload}}</div>\n    <div style=\"font-size:18px;color:#aaa;\">%</div>\n    <div style=\"width:80%;height:8px;background:#eee;border-radius:4px;overflow:hidden;\">\n      <div :style=\"{width:w,background:c,height:'100%',borderRadius:'4px',transition:'width 0.5s'}\"></div>\n    </div>\n    <div style=\"display:flex;justify-content:space-between;width:80%;font-size:11px;color:#bbb;\"><span>0</span><span>100%</span></div>\n  </div>\n</template>\n<script>\nexport default{computed:{c(){var v=parseFloat(this.msg.payload);return v<30?'#f9a825':v<60?'#43a047':'#1565c0';},w(){return Math.min(Math.max(parseFloat(this.msg.payload)||0,0),100)+'%';}}}\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 380,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "79058182ca585d29",
+        "type": "ui-chart",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "ac2d5eb7a27657d4",
+        "name": "Hum Chart",
+        "order": 2,
+        "chartType": "line",
+        "category": "Humidity",
+        "categoryType": "str",
+        "xAxisType": "time",
+        "xAxisFormat": "HH:mm:ss",
+        "xAxisFormatType": "auto",
+        "yAxisLabel": "%",
+        "ymin": 0,
+        "ymax": 100,
+        "action": "append",
+        "pointRadius": "2",
+        "showLegend": false,
+        "removeOlder": "1",
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "30",
+        "colors": [
+            "#0094CE"
+        ],
+        "width": "3",
+        "height": "4",
+        "className": "",
+        "x": 380,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "138abe3a5a6f0a83",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Gas Raw",
+        "topic": "esp32/gas",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 320,
+        "wires": [
+            [
+                "3f74163a6c8f1608"
+            ]
+        ]
+    },
+    {
+        "id": "3f74163a6c8f1608",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Gas Anomaly",
+        "func": "var c=parseFloat(msg.payload);\nvar l=flow.get('lastGasVal');\nif(l!=null&&(c-l)>2000){\n  var a={payload:'['+new Date().toLocaleTimeString()+'] ANOMALY: Gas jumped '+(c-l)+' ADC ('+l+'>'+c+') — Possible spoofing!',topic:'ANOMALY'};\n  flow.set('lastGasVal',c);\n  return[msg,a];\n}\nflow.set('lastGasVal',c);\nreturn[msg,null];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 320,
+        "wires": [
+            [
+                "cbed0a1f99a522e3",
+                "ec0753755511cf7e",
+                "eb9c108a5564242b"
+            ],
+            [
+                "3c2cb30f044a0f6a",
+                "af26c8ece2935bca",
+                "db282998ef480225"
+            ]
+        ]
+    },
+    {
+        "id": "cbed0a1f99a522e3",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "73296aac0a4038ca",
+        "name": "Gas Card",
+        "order": 1,
+        "width": "3",
+        "height": "4",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;\">\n    <div style=\"font-size:14px;color:#888;font-weight:500;\">💨 Gas Level</div>\n    <div style=\"font-size:52px;font-weight:800;line-height:1;\" :style=\"{color:c}\">{{msg.payload}}</div>\n    <div style=\"font-size:18px;color:#aaa;\">ADC</div>\n    <div style=\"width:80%;height:8px;background:#eee;border-radius:4px;overflow:hidden;\">\n      <div :style=\"{width:w,background:c,height:'100%',borderRadius:'4px',transition:'width 0.5s'}\"></div>\n    </div>\n    <div style=\"display:flex;justify-content:space-between;width:80%;font-size:11px;color:#bbb;\"><span>0</span><span>4095</span></div>\n  </div>\n</template>\n<script>\nexport default{computed:{c(){var v=parseFloat(this.msg.payload);return v<1500?'#43a047':v<2500?'#fb8c00':'#e53935';},w(){return Math.min(Math.max(parseFloat(this.msg.payload)||0,0),4095)/4095*100+'%';}}}\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 540,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ec0753755511cf7e",
+        "type": "ui-chart",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "73296aac0a4038ca",
+        "name": "Gas Chart",
+        "order": 2,
+        "chartType": "line",
+        "category": "Gas",
+        "categoryType": "str",
+        "xAxisType": "time",
+        "xAxisFormat": "HH:mm:ss",
+        "xAxisFormatType": "auto",
+        "yAxisLabel": "ADC",
+        "ymin": 0,
+        "ymax": 4095,
+        "action": "append",
+        "pointRadius": "2",
+        "showLegend": false,
+        "removeOlder": "1",
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "30",
+        "colors": [
+            "#e53935"
+        ],
+        "width": "3",
+        "height": "4",
+        "className": "",
+        "x": 540,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b8f925bf1f9ba51a",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Gas Status",
+        "topic": "esp32/gas/status",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 420,
+        "wires": [
+            [
+                "f297232e43ba11ea",
+                "cf7fdd7cc4012aa4"
+            ]
+        ]
+    },
+    {
+        "id": "f297232e43ba11ea",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Gas Banner",
+        "func": "var s=msg.payload;\nif(s==='ALERT')msg.payload='<div style=\"background:#b71c1c;color:#fff;padding:12px;border-radius:6px;font-size:16px;font-weight:700;text-align:center;\">⚠  GAS ALERT DETECTED  ⚠</div>';\nelse msg.payload='<div style=\"background:#1b5e20;color:#fff;padding:12px;border-radius:6px;font-size:16px;font-weight:700;text-align:center;\">✓  GAS NORMAL</div>';\nreturn msg;",
+        "outputs": 1,
+        "x": 340,
+        "y": 420,
+        "wires": [
+            [
+                "29a9fd05f151bf50"
+            ]
+        ]
+    },
+    {
+        "id": "29a9fd05f151bf50",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "73296aac0a4038ca",
+        "name": "Gas Status",
+        "order": 3,
+        "width": "6",
+        "height": "2",
+        "head": "",
+        "format": "<template><div v-html=\"msg.payload\"></div></template>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 560,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cf7fdd7cc4012aa4",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Email Trigger",
+        "func": "if(msg.payload==='ALERT'){msg.topic='GAS ALERT — Smart Home IoT';msg.payload='Gas detected: '+new Date().toLocaleString()+'\\nCheck premises immediately.';return msg;}\nreturn null;",
+        "outputs": 1,
+        "x": 340,
+        "y": 460,
+        "wires": [
+            [
+                "e238c4c21bded8dc"
+            ]
+        ]
+    },
+    {
+        "id": "e238c4c21bded8dc",
+        "type": "e-mail",
+        "z": "39e0ca4ca3b5ecae",
+        "server": "smtp.gmail.com",
+        "port": "465",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": true,
+        "tls": true,
+        "name": "your email here",
+        "dname": "Gas Alert Email",
+        "x": 550,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "913d6f18c407f589",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Water Level",
+        "topic": "pico2/water/level",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 120,
+        "y": 540,
+        "wires": [
+            [
+                "86449611446b0888",
+                "82ffda8fdac4a266",
+                "0a518f9edf12c7e6",
+                "8b01b8988cd0f3fa"
+            ]
+        ]
+    },
+    {
+        "id": "86449611446b0888",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "8c38cf72c0512ca1",
+        "name": "Water Card",
+        "order": 1,
+        "width": "3",
+        "height": "4",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;\">\n    <div style=\"font-size:14px;color:#888;font-weight:500;\">🪣 Water Level</div>\n    <div style=\"font-size:52px;font-weight:800;line-height:1;\" :style=\"{color:c}\">{{msg.payload}}</div>\n    <div style=\"font-size:18px;color:#aaa;\">%</div>\n    <div style=\"width:80%;height:8px;background:#eee;border-radius:4px;overflow:hidden;\">\n      <div :style=\"{width:w,background:c,height:'100%',borderRadius:'4px',transition:'width 0.5s'}\"></div>\n    </div>\n    <div style=\"display:flex;justify-content:space-between;width:80%;font-size:11px;color:#bbb;\"><span>0</span><span>100%</span></div>\n  </div>\n</template>\n<script>\nexport default{computed:{c(){var v=parseFloat(this.msg.payload);return v<20?'#e53935':v<40?'#fb8c00':'#1565c0';},w(){return Math.min(Math.max(parseFloat(this.msg.payload)||0,0),100)+'%';}}}\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 390,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "82ffda8fdac4a266",
+        "type": "ui-chart",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "8c38cf72c0512ca1",
+        "name": "Water Chart",
+        "label": "",
+        "order": 2,
+        "chartType": "line",
+        "category": "Water",
+        "categoryType": "str",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "HH:mm:ss",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "",
+        "yAxisPropertyType": "property",
+        "ymin": 0,
+        "ymax": 100,
+        "bins": "",
+        "action": "append",
+        "stackSeries": false,
+        "pointRadius": "2",
+        "showLegend": false,
+        "removeOlder": "1",
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "30",
+        "colors": [
+            "#1565c0",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "4",
+        "className": "",
+        "interpolation": "linear",
+        "x": 380,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7ae401cad4fb0a85",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Water Status",
+        "topic": "pico2/water/status",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 620,
+        "wires": [
+            [
+                "3071a577dba80a78"
+            ]
+        ]
+    },
+    {
+        "id": "3071a577dba80a78",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Water Banner",
+        "func": "var s=msg.payload;\nvar bg={'OK':'#1b5e20','LOW':'#e65100','CRITICAL':'#b71c1c','ERROR':'#424242'};\nvar label={'OK':'✓  Tank OK','LOW':'⚠  Water Low','CRITICAL':'🚨  CRITICAL — Refill Now','ERROR':'❌  Sensor Error'};\nmsg.payload='<div style=\"background:'+(bg[s]||'#333')+';color:#fff;padding:12px;border-radius:6px;font-size:16px;font-weight:700;text-align:center;\">'+(label[s]||s)+'</div>';\nreturn msg;",
+        "outputs": 1,
+        "x": 350,
+        "y": 620,
+        "wires": [
+            [
+                "086fdb0c953c96df"
+            ]
+        ]
+    },
+    {
+        "id": "086fdb0c953c96df",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "8c38cf72c0512ca1",
+        "name": "Water Status",
+        "order": 3,
+        "width": "6",
+        "height": "2",
+        "head": "",
+        "format": "<template><div v-html=\"msg.payload\"></div></template>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 570,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "45bbcaaa4104e719",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ARM Temp",
+        "topic": "arm/temperature",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 700,
+        "wires": [
+            [
+                "34b1f0ef6d3941fb",
+                "0a518f9edf12c7e6"
+            ]
+        ]
+    },
+    {
+        "id": "34b1f0ef6d3941fb",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "46db0dfd495e8964",
+        "name": "ARM Card",
+        "order": 1,
+        "width": "3",
+        "height": "4",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;\">\n    <div style=\"font-size:14px;color:#888;font-weight:500;\">⚙️ ARM Internal Temp</div>\n    <div style=\"font-size:52px;font-weight:800;line-height:1;\" :style=\"{color:c}\">{{msg.payload}}</div>\n    <div style=\"font-size:18px;color:#aaa;\">°C</div>\n    <div style=\"width:80%;height:8px;background:#eee;border-radius:4px;overflow:hidden;\">\n      <div :style=\"{width:w,background:c,height:'100%',borderRadius:'4px',transition:'width 0.5s'}\"></div>\n    </div>\n    <div style=\"display:flex;justify-content:space-between;width:80%;font-size:11px;color:#bbb;\"><span>0</span><span>80°C</span></div>\n  </div>\n</template>\n<script>\nexport default{computed:{c(){var v=parseFloat(this.msg.payload);return v<25?'#1565c0':v<40?'#43a047':v<55?'#fb8c00':'#e53935';},w(){return Math.min(Math.max(parseFloat(this.msg.payload)||0,0),80)/80*100+'%';}}}\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 450,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9555a09394f1b14b",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ARM Status",
+        "topic": "arm/status",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 760,
+        "wires": [
+            [
+                "fcfa1f127d8e5214"
+            ]
+        ]
+    },
+    {
+        "id": "fcfa1f127d8e5214",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ARM Status Banner",
+        "func": "var s=msg.payload;\nvar bg={'ONLINE':'#1b5e20','OFFLINE':'#b71c1c'};\nvar label={'ONLINE':'✓  ARM Node ONLINE — Heartbeat Active','OFFLINE':'❌  ARM Node OFFLINE'};\nmsg.payload='<div style=\"background:'+(bg[s]||'#37474f')+';color:#fff;padding:12px;border-radius:6px;font-size:16px;font-weight:700;text-align:center;\">'+(label[s]||'ARM: '+s)+'</div>';\nreturn msg;",
+        "outputs": 1,
+        "x": 370,
+        "y": 760,
+        "wires": [
+            [
+                "54d09b5755c15965"
+            ]
+        ]
+    },
+    {
+        "id": "54d09b5755c15965",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "46db0dfd495e8964",
+        "name": "ARM Status",
+        "order": 2,
+        "width": "6",
+        "height": "2",
+        "head": "",
+        "format": "<template><div v-html=\"msg.payload\"></div></template>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 590,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "effbbbfe604d4ec4",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ARM Alert",
+        "topic": "arm/alert",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 820,
+        "wires": [
+            [
+                "37e4dd51c07eda35"
+            ]
+        ]
+    },
+    {
+        "id": "37e4dd51c07eda35",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "ARM Alert",
+        "func": "var now=new Date().toLocaleTimeString();\nmsg.payload='['+now+'] 🚨 PANIC BUTTON — STM32 ARM Node';\nmsg.topic='ARM_PANIC';\nreturn msg;",
+        "outputs": 1,
+        "x": 340,
+        "y": 820,
+        "wires": [
+            [
+                "afdcf97a6c476cb9",
+                "cb96047c955f7473"
+            ]
+        ]
+    },
+    {
+        "id": "cb96047c955f7473",
+        "type": "ui-notification",
+        "z": "39e0ca4ca3b5ecae",
+        "ui": "c8cb9b7f719a81c8",
+        "position": "top right",
+        "colorDefault": false,
+        "color": "#b71c1c",
+        "displayTime": "8",
+        "showCountdown": true,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Acknowledge",
+        "raw": false,
+        "className": "",
+        "name": "ARM Notif",
+        "x": 570,
+        "y": 820,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "29c974d5f39c9ab6",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Panic Email",
+        "topic": "capstone/panic/email",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 120,
+        "y": 880,
+        "wires": [
+            [
+                "b81eab2119c12408"
+            ]
+        ]
+    },
+    {
+        "id": "b81eab2119c12408",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Panic Email Format",
+        "func": "msg.topic='PANIC ALERT — Smart Home IoT';\nmsg.payload='PANIC BUTTON PRESSED on STM32 ARM Node!\\n\\nTime: '+new Date().toLocaleString()+'\\n\\nImmediate attention required!';\nreturn msg;",
+        "outputs": 1,
+        "x": 370,
+        "y": 880,
+        "wires": [
+            [
+                "6af19bc1a9dbaf50"
+            ]
+        ]
+    },
+    {
+        "id": "6af19bc1a9dbaf50",
+        "type": "e-mail",
+        "z": "39e0ca4ca3b5ecae",
+        "server": "smtp.gmail.com",
+        "port": "465",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": true,
+        "tls": true,
+        "name": "your email here",
+        "dname": "Panic Alert",
+        "x": 570,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "6d3fcf924856dd25",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "fb6177523997fbac",
+        "page": "",
+        "ui": "",
+        "name": "Manual Controls Template",
+        "order": 1,
+        "width": "6",
+        "height": "6",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;flex-direction:column;gap:10px;padding:4px 0;\">\n\n    <div style=\"display:flex;align-items:center;justify-content:space-between;border:1.5px solid #ddd;border-radius:8px;padding:12px 16px;background:#fff;\">\n      <div style=\"display:flex;align-items:center;gap:10px;\">\n        <span style=\"font-size:18px;\">💡</span>\n        <span style=\"font-size:14px;font-weight:600;color:#1a1a1a;\">ESP32 Onboard LED</span>\n      </div>\n      <v-switch v-model=\"esp32\" color=\"#f9a825\" hide-details density=\"compact\"></v-switch>\n    </div>\n\n    <div style=\"display:flex;align-items:center;justify-content:space-between;border:1.5px solid #ddd;border-radius:8px;padding:12px 16px;background:#fff;\">\n      <div style=\"display:flex;align-items:center;gap:10px;\">\n        <span style=\"font-size:18px;\">💡</span>\n        <span style=\"font-size:14px;font-weight:600;color:#1a1a1a;\">Pico 2W Onboard LED</span>\n      </div>\n      <v-switch v-model=\"pico\" color=\"#43a047\" hide-details density=\"compact\"></v-switch>\n    </div>\n\n    <div style=\"display:flex;align-items:center;justify-content:space-between;border:1.5px solid #ddd;border-radius:8px;padding:12px 16px;background:#fff;\">\n      <div style=\"display:flex;align-items:center;gap:10px;\">\n        <span style=\"font-size:18px;\">💡</span>\n        <span style=\"font-size:14px;font-weight:600;color:#1a1a1a;\">STM32 External LED</span>\n      </div>\n      <v-switch v-model=\"arm\" color=\"#0094CE\" hide-details density=\"compact\"></v-switch>\n    </div>\n\n    <div style=\"display:flex;align-items:center;justify-content:space-between;border:1.5px solid #ddd;border-radius:8px;padding:12px 16px;background:#fff;\">\n      <div style=\"display:flex;align-items:center;gap:10px;\">\n        <span style=\"font-size:18px;\">🔔</span>\n        <span style=\"font-size:14px;font-weight:600;color:#1a1a1a;\">Manual Buzzer Override</span>\n      </div>\n      <v-switch v-model=\"buzzer\" color=\"#b71c1c\" hide-details density=\"compact\"></v-switch>\n    </div>\n\n  </div>\n</template>\n<script>\nexport default {\n  data() { \n    return { esp32: false, pico: false, arm: false, buzzer: false }; \n  },\n  watch: {\n    esp32(val)  { this.send({topic: 'capstone/esp32/led', payload: val ? 'ON' : 'OFF'}); },\n    pico(val)   { this.send({topic: 'capstone/pico2/led', payload: val ? 'ON' : 'OFF'}); },\n    arm(val)    { this.send({topic: 'arm/led', payload: val ? 'ON' : 'OFF'}); },\n    buzzer(val) { this.send({topic: 'capstone/esp32/buzzer', payload: val ? 'ON' : 'OFF'}); }\n  }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1030,
+        "y": 80,
+        "wires": [
+            [
+                "9f6e7c1973ca4574"
+            ]
+        ]
+    },
+    {
+        "id": "9f6e7c1973ca4574",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Route Control",
+        "func": "var t=msg.topic;\nif(t==='capstone/esp32/led'||t==='capstone/pico2/led'||t==='arm/led'||t==='capstone/esp32/buzzer'){\n  return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1260,
+        "y": 80,
+        "wires": [
+            [
+                "eebbe34ed03e2d3c"
+            ]
+        ]
+    },
+    {
+        "id": "eebbe34ed03e2d3c",
+        "type": "mqtt out",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Control Out",
+        "topic": "",
+        "qos": "0",
+        "retain": "",
+        "broker": "f62f31d95a2a3306",
+        "x": 1450,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "3c2cb30f044a0f6a",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Anomaly Builder",
+        "func": "var a=flow.get('anomalyLog')||[];\na.unshift({Time:new Date().toLocaleTimeString(),Type:'ANOMALY',Detail:msg.payload});\nif(a.length>20)a=a.slice(0,20);\nflow.set('anomalyLog',a);\nmsg.payload=a;\nreturn msg;",
+        "outputs": 1,
+        "x": 620,
+        "y": 180,
+        "wires": [
+            [
+                "95bb7c80427bc557"
+            ]
+        ]
+    },
+    {
+        "id": "95bb7c80427bc557",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "907c9857ee6f9c0a",
+        "name": "Anomaly Table",
+        "order": 1,
+        "width": "12",
+        "height": "6",
+        "head": "",
+        "format": "<template>\n  <div style=\"overflow-y:auto;max-height:280px;\">\n    <table style=\"width:100%;border-collapse:collapse;font-size:13px;\">\n      <thead><tr style=\"background:#f0f2f5;position:sticky;top:0;\">\n        <th style=\"padding:8px 12px;text-align:left;border-bottom:2px solid #222;font-weight:600;\">Time</th>\n        <th style=\"padding:8px 12px;text-align:left;border-bottom:2px solid #222;font-weight:600;\">Type</th>\n        <th style=\"padding:8px 12px;text-align:left;border-bottom:2px solid #222;font-weight:600;\">Detail</th>\n      </tr></thead>\n      <tbody>\n        <tr v-for=\"(row,i) in msg.payload\" :key=\"i\" :style=\"{background:i%2===0?'#fff':'#f9f9f9'}\">\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;white-space:nowrap;\">{{row.Time}}</td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;\"><span style=\"background:#b71c1c;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;\">{{row.Type}}</span></td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;color:#333;\">{{row.Detail}}</td>\n        </tr>\n        <tr v-if=\"!msg.payload||msg.payload.length===0\"><td colspan=\"3\" style=\"padding:20px;text-align:center;color:#aaa;\">No anomalies detected</td></tr>\n      </tbody>\n    </table>\n  </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 820,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "af26c8ece2935bca",
+        "type": "ui-notification",
+        "z": "39e0ca4ca3b5ecae",
+        "ui": "c8cb9b7f719a81c8",
+        "position": "top right",
+        "colorDefault": false,
+        "color": "#b71c1c",
+        "displayTime": "8",
+        "showCountdown": true,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Noted",
+        "allowConfirm": false,
+        "confirmText": "",
+        "raw": false,
+        "className": "",
+        "name": "Anomaly Notif",
+        "x": 620,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0a518f9edf12c7e6",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Update Overview",
+        "func": "if(msg.topic==='esp32/temp')flow.set('ov_temp',msg.payload);\nif(msg.topic==='esp32/hum')flow.set('ov_hum',msg.payload);\nif(msg.topic==='pico2/water/level')flow.set('ov_water',msg.payload);\nif(msg.topic==='arm/temperature')flow.set('ov_arm',msg.payload);\nmsg.payload={temp:flow.get('ov_temp')||'--',hum:flow.get('ov_hum')||'--',water:flow.get('ov_water')||'--',arm:flow.get('ov_arm')||'--'};\nreturn msg;",
+        "outputs": 1,
+        "x": 430,
+        "y": 960,
+        "wires": [
+            [
+                "fdfd9f32e3840e8a"
+            ]
+        ]
+    },
+    {
+        "id": "fdfd9f32e3840e8a",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "ccb359b5fc00ab2b",
+        "name": "Overview",
+        "order": 1,
+        "width": "12",
+        "height": "3",
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex;justify-content:space-around;align-items:center;padding:16px 0;\">\n    <div style=\"text-align:center;\"><div style=\"font-size:13px;color:#888;\">🌡️ Temperature</div><div style=\"font-size:32px;font-weight:700;color:#1565c0;\">{{msg.payload.temp}}<span style=\"font-size:16px;\">°C</span></div></div>\n    <div style=\"width:1px;height:50px;background:#ddd;\"></div>\n    <div style=\"text-align:center;\"><div style=\"font-size:13px;color:#888;\">💧 Humidity</div><div style=\"font-size:32px;font-weight:700;color:#0094CE;\">{{msg.payload.hum}}<span style=\"font-size:16px;\">%</span></div></div>\n    <div style=\"width:1px;height:50px;background:#ddd;\"></div>\n    <div style=\"text-align:center;\"><div style=\"font-size:13px;color:#888;\">🪣 Water Tank</div><div style=\"font-size:32px;font-weight:700;color:#e65100;\">{{msg.payload.water}}<span style=\"font-size:16px;\">%</span></div></div>\n    <div style=\"width:1px;height:50px;background:#ddd;\"></div>\n    <div style=\"text-align:center;\"><div style=\"font-size:13px;color:#888;\">⚙️ ARM Temp</div><div style=\"font-size:32px;font-weight:700;color:#43a047;\">{{msg.payload.arm}}<span style=\"font-size:16px;\">°C</span></div></div>\n  </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 640,
+        "y": 960,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f9f0726821db31fd",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "capstone/alert",
+        "topic": "capstone/alert",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 130,
+        "y": 1020,
+        "wires": [
+            [
+                "a874f680e66e1f74"
+            ]
+        ]
+    },
+    {
+        "id": "a874f680e66e1f74",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Capstone Alert",
+        "func": "var now=new Date().toLocaleTimeString();\nvar labels={'GAS_DETECTED':'💨 Gas Detected','HIGH_TEMP':'🔥 High Temperature','NORMAL':'✅ Normal','MANUAL_ALERT':'🚨 Manual Alert'};\nvar key=msg.payload;\nmsg.payload='['+now+'] '+(labels[key]||key);\nmsg.topic=key;\nreturn msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 1020,
+        "wires": [
+            [
+                "afdcf97a6c476cb9",
+                "4d0c082953223de4"
+            ]
+        ]
+    },
+    {
+        "id": "4d0c082953223de4",
+        "type": "ui-notification",
+        "z": "39e0ca4ca3b5ecae",
+        "ui": "c8cb9b7f719a81c8",
+        "position": "top right",
+        "colorDefault": false,
+        "color": "#b71c1c",
+        "displayTime": "5",
+        "showCountdown": true,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Dismiss",
+        "raw": false,
+        "className": "",
+        "name": "Alert Notif",
+        "x": 580,
+        "y": 1040,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "18cfeafc2d0d61a1",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Security",
+        "topic": "$SYS/brokers/+/clients/connected",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 120,
+        "y": 1080,
+        "wires": [
+            [
+                "a5258293753e7fa8"
+            ]
+        ]
+    },
+    {
+        "id": "a5258293753e7fa8",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Security Check",
+        "func": "var now=new Date().toLocaleTimeString();\nvar info=msg.payload.toString();\nvar known=['ESP32','Pico','nodered','testuser','NodeRED'];\nif(!known.some(function(c){return info.indexOf(c)>=0;})){\n  msg.payload='['+now+'] 🔒 SECURITY: Unknown client — '+info;\n  msg.topic='SECURITY';\n  return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "x": 350,
+        "y": 1080,
+        "wires": [
+            [
+                "afdcf97a6c476cb9",
+                "115ea48b64120618"
+            ]
+        ]
+    },
+    {
+        "id": "115ea48b64120618",
+        "type": "ui-notification",
+        "z": "39e0ca4ca3b5ecae",
+        "ui": "c8cb9b7f719a81c8",
+        "position": "top right",
+        "colorDefault": false,
+        "color": "#b71c1c",
+        "displayTime": "10",
+        "showCountdown": true,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Investigate",
+        "allowConfirm": false,
+        "confirmText": "",
+        "raw": false,
+        "className": "",
+        "name": "Security Notif",
+        "x": 590,
+        "y": 1080,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "afdcf97a6c476cb9",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Alert Builder",
+        "func": "var alerts=flow.get('alertLog')||[];\nalerts.unshift({Time:new Date().toLocaleTimeString(),Alert:msg.payload});\nif(alerts.length>20)alerts=alerts.slice(0,20);\nflow.set('alertLog',alerts);\nmsg.payload=alerts;\nreturn msg;",
+        "outputs": 1,
+        "x": 560,
+        "y": 1140,
+        "wires": [
+            [
+                "f166407fde4337be"
+            ]
+        ]
+    },
+    {
+        "id": "f166407fde4337be",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "cbc393653952ead4",
+        "name": "Alert Table",
+        "order": 1,
+        "width": "12",
+        "height": "6",
+        "head": "",
+        "format": "<template>\n  <div style=\"overflow-y:auto;max-height:280px;\">\n    <table style=\"width:100%;border-collapse:collapse;font-size:13px;\">\n      <thead><tr style=\"background:#f0f2f5;position:sticky;top:0;\">\n        <th style=\"padding:8px 12px;text-align:left;border-bottom:2px solid #222;font-weight:600;width:120px;\">Time</th>\n        <th style=\"padding:8px 12px;text-align:left;border-bottom:2px solid #222;font-weight:600;\">Alert</th>\n      </tr></thead>\n      <tbody>\n        <tr v-for=\"(row,i) in msg.payload\" :key=\"i\" :style=\"{background:i%2===0?'#fff':'#f9f9f9'}\">\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;white-space:nowrap;color:#888;\">{{row.Time}}</td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;color:#222;\">{{row.Alert}}</td>\n        </tr>\n        <tr v-if=\"!msg.payload||msg.payload.length===0\"><td colspan=\"2\" style=\"padding:20px;text-align:center;color:#aaa;\">No alerts</td></tr>\n      </tbody>\n    </table>\n  </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 780,
+        "y": 1140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "13e218bdb9acb7d9",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "History Builder",
+        "func": "var history=flow.get('sensorHistory')||[];\nvar row={\n  Time:new Date().toLocaleTimeString(),\n  Temp:String(msg.payload)+'C',\n  Humidity:String(flow.get('hum')||'--')+'%',\n  Gas:String(flow.get('gas')||'--'),\n  Water:String(flow.get('water')||'--')+'%'\n};\nhistory.unshift(row);\nif(history.length>20)history=history.slice(0,20);\nflow.set('sensorHistory',history);\nmsg.payload=history;\nreturn msg;",
+        "outputs": 1,
+        "x": 380,
+        "y": 1200,
+        "wires": [
+            [
+                "da13f0b6162b3bb2"
+            ]
+        ]
+    },
+    {
+        "id": "da13f0b6162b3bb2",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "45b206f281909511",
+        "name": "History Table",
+        "order": 1,
+        "width": "12",
+        "height": "7",
+        "head": "",
+        "format": "<template>\n  <div style=\"overflow-y:auto;max-height:320px;\">\n    <table style=\"width:100%;border-collapse:collapse;font-size:13px;\">\n      <thead><tr style=\"background:#f0f2f5;position:sticky;top:0;\">\n        <th style=\"padding:8px 12px;text-align:left;border-bottom:2px solid #222;font-weight:600;\">Time</th>\n        <th style=\"padding:8px 12px;text-align:center;border-bottom:2px solid #222;font-weight:600;\">Temp</th>\n        <th style=\"padding:8px 12px;text-align:center;border-bottom:2px solid #222;font-weight:600;\">Humidity</th>\n        <th style=\"padding:8px 12px;text-align:center;border-bottom:2px solid #222;font-weight:600;\">Gas</th>\n        <th style=\"padding:8px 12px;text-align:center;border-bottom:2px solid #222;font-weight:600;\">Water</th>\n      </tr></thead>\n      <tbody>\n        <tr v-for=\"(row,i) in msg.payload\" :key=\"i\" :style=\"{background:i%2===0?'#fff':'#f9f9f9'}\">\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;white-space:nowrap;color:#888;\">{{row.Time}}</td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;text-align:center;color:#1565c0;font-weight:600;\">{{row.Temp}}</td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;text-align:center;color:#0094CE;font-weight:600;\">{{row.Humidity}}</td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;text-align:center;color:#e53935;font-weight:600;\">{{row.Gas}}</td>\n          <td style=\"padding:8px 12px;border-bottom:1px solid #eee;text-align:center;color:#1565c0;font-weight:600;\">{{row.Water}}</td>\n        </tr>\n        <tr v-if=\"!msg.payload||msg.payload.length===0\"><td colspan=\"5\" style=\"padding:20px;text-align:center;color:#aaa;\">No data yet</td></tr>\n      </tbody>\n    </table>\n  </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 600,
+        "y": 1200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "75c0ca2aed4c2980",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Store Hum",
+        "func": "flow.set('hum',msg.payload);return null;",
+        "outputs": 1,
+        "x": 320,
+        "y": 1260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eb9c108a5564242b",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Store Gas",
+        "func": "flow.set('gas',msg.payload);return null;",
+        "outputs": 1,
+        "x": 330,
+        "y": 1320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8b01b8988cd0f3fa",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Store Water",
+        "func": "flow.set('water',msg.payload);return null;",
+        "outputs": 1,
+        "x": 320,
+        "y": 1380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d206b69b30715fc1",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Hum store",
+        "topic": "esp32/hum",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 110,
+        "y": 1260,
+        "wires": [
+            [
+                "75c0ca2aed4c2980"
+            ]
+        ]
+    },
+    {
+        "id": "b2af7980f7bf12af",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Gas store",
+        "topic": "esp32/gas",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 100,
+        "y": 1320,
+        "wires": [
+            [
+                "eb9c108a5564242b"
+            ]
+        ]
+    },
+    {
+        "id": "208e25d520d96eb6",
+        "type": "mqtt in",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Water store",
+        "topic": "pico2/water/level",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "f62f31d95a2a3306",
+        "inputs": 0,
+        "x": 110,
+        "y": 1380,
+        "wires": [
+            [
+                "8b01b8988cd0f3fa"
+            ]
+        ]
+    },
+    {
+        "id": "db282998ef480225",
+        "type": "function",
+        "z": "39e0ca4ca3b5ecae",
+        "name": "Anomaly email format",
+        "func": "msg.topic = \"ANOMALY ALERT — Smart Home IoT\";\nmsg.payload = \"ANOMALY DETECTED on Smart Home System!\\n\\nTime: \" + new Date().toLocaleString() + \"\\n\\nDetail: \" + msg.payload + \"\\n\\nCheck your dashboard immediately.\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 260,
+        "wires": [
+            [
+                "5303fb906438d499"
+            ]
+        ]
+    },
+    {
+        "id": "5303fb906438d499",
+        "type": "e-mail",
+        "z": "39e0ca4ca3b5ecae",
+        "server": "smtp.gmail.com",
+        "port": "465",
+        "authtype": "BASIC",
+        "saslformat": true,
+        "token": "oauth2Response.access_token",
+        "secure": true,
+        "tls": true,
+        "name": "your email here",
+        "dname": "Anomaly email",
+        "x": 860,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "ef6315f5f5f76f16",
+        "type": "ui-template",
+        "z": "39e0ca4ca3b5ecae",
+        "group": "840fcb91efd2f2d2",
+        "page": "",
+        "ui": "",
+        "name": "Camera Feed",
+        "order": 1,
+        "width": "12",
+        "height": "8",
+        "head": "",
+        "format": "<template>\n  <div style=\"background:#fff;border-radius:6px;padding:10px;\">\n    <img src='http://192.168.x.x:8080/video' style='width:100%;border-radius:4px;display:block;' @error=\"$event.target.style.display='none'\" />\n    <p style=\"color:#b71c1c;text-align:center;font-weight:600;margin:10px 0 4px;\">Camera Offline — Update IP in this template node</p>\n    <p style=\"color:#0094CE;font-size:12px;text-align:center;margin:0;\">Open IP Webcam app → Start Server → copy IP → replace 192.168.x.x above</p>\n  </div>\n</template>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1120,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f62f31d95a2a3306",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "10.99.206.76",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "defb82e408edecfc",
+        "type": "ui-group",
+        "name": "Temperature",
+        "page": "e12a97cdb9ad48c1",
+        "width": "6",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ac2d5eb7a27657d4",
+        "type": "ui-group",
+        "name": "Humidity",
+        "page": "e12a97cdb9ad48c1",
+        "width": "6",
+        "height": "1",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "73296aac0a4038ca",
+        "type": "ui-group",
+        "name": "Gas & Safety Monitor",
+        "page": "e12a97cdb9ad48c1",
+        "width": "6",
+        "height": "1",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "8c38cf72c0512ca1",
+        "type": "ui-group",
+        "name": "Pico 2W — Water Tank",
+        "page": "e12a97cdb9ad48c1",
+        "width": "6",
+        "height": "1",
+        "order": 5,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "46db0dfd495e8964",
+        "type": "ui-group",
+        "name": "ARM Node — STM32",
+        "page": "e12a97cdb9ad48c1",
+        "width": "6",
+        "height": "1",
+        "order": 6,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "c8cb9b7f719a81c8",
+        "type": "ui-base",
+        "name": "Smart Home IoT",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "navigationStyle": "icon",
+        "titleBarStyle": "default"
+    },
+    {
+        "id": "fb6177523997fbac",
+        "type": "ui-group",
+        "name": "Manual Controls",
+        "page": "e12a97cdb9ad48c1",
+        "width": "6",
+        "height": "1",
+        "order": 7,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "907c9857ee6f9c0a",
+        "type": "ui-group",
+        "name": "Anomaly Detection — Security Monitor",
+        "page": "e12a97cdb9ad48c1",
+        "width": "12",
+        "height": "1",
+        "order": 8,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ccb359b5fc00ab2b",
+        "type": "ui-group",
+        "name": "System Overview",
+        "page": "e12a97cdb9ad48c1",
+        "width": "12",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "cbc393653952ead4",
+        "type": "ui-group",
+        "name": "Alert Log",
+        "page": "e12a97cdb9ad48c1",
+        "width": "12",
+        "height": "1",
+        "order": 9,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "45b206f281909511",
+        "type": "ui-group",
+        "name": "Sensor Data History",
+        "page": "e12a97cdb9ad48c1",
+        "width": "12",
+        "height": "1",
+        "order": 10,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "840fcb91efd2f2d2",
+        "type": "ui-group",
+        "name": "Live Camera Feed",
+        "page": "e12a97cdb9ad48c1",
+        "width": "12",
+        "height": "1",
+        "order": 11,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "e12a97cdb9ad48c1",
+        "type": "ui-page",
+        "name": "Smart Home",
+        "ui": "c8cb9b7f719a81c8",
+        "path": "/",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "fa1ce5ab1b74b69a",
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "fa1ce5ab1b74b69a",
+        "type": "ui-theme",
+        "name": "Clean Light",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#f0f2f5",
+            "groupBg": "#ffffff",
+            "groupOutline": "#222222"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "6px",
+            "widgetGap": "6px"
+        }
+    },
+    {
+        "id": "66539c549c36eae0",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.30.2",
+            "node-red-node-email": "5.2.1"
+        }
+    }
+]
