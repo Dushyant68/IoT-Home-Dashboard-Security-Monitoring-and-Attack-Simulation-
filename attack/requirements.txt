@@ -1,0 +1,5 @@
+# Python dependencies for attack and mitigation scripts
+# Install with: pip3 install -r requirements.txt --break-system-packages
+# Run on: Kali Linux attacker machine
+
+paho-mqtt>=1.6.1
