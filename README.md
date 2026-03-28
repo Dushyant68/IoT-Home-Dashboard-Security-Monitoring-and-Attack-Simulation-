@@ -156,5 +156,3 @@ STM32 GND       →  Pico 2W GND
 Pico 2W reads serial data from STM32 and publishes it to MQTT over WiFi. No bridge script on PC is needed.
 
 ---
-
-
