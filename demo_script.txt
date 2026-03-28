@@ -1,0 +1,435 @@
+# ============================================================
+#  CAPSTONE DEMO SCRIPT — Faculty Presentation Guide
+#  IoT Home Dashboard — Security Monitoring & Attack Simulation
+# ============================================================
+#
+#  READ THIS FULLY BEFORE DEMO DAY. PRACTICE IT AT LEAST ONCE.
+#  Follow each phase in order. Times are approximate.
+#
+#  SETUP SUMMARY:
+#    Main Windows Laptop   → Mosquitto (Docker) + Node-RED (local)
+#    ESP32                 → Temp, Humidity, Gas, Water, Buzzer, LED
+#    Pico 2W               → HC-SR04 Water Sensor + LED + STM32 bridge
+#    STM32 Blue Pill       → Panic Button, LED, ARM Temp, Heartbeat
+#                            (connected to Pico 2W via UART — no USB)
+#    Kali Linux Laptop     → Attack machine
+#    All on same hotspot   → 2.4GHz mobile hotspot
+#
+#  CONTAINER NAME:  mosquitto-broker
+#  MQTT PORT:       1883 (ONE broker — config is swapped for demo)
+#  DASHBOARD:       http://localhost:1880/dashboard
+#  MQTT TOPICS:
+#    esp32/temp          esp32/hum          esp32/gas
+#    esp32/gas/status    pico2/water/level  pico2/water/status
+#    arm/status          arm/temperature    arm/panic
+# ============================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRE-DEMO CHECKLIST  (do this 10 minutes before faculty arrives)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] Mobile hotspot is ON (2.4GHz)
+  [ ] Windows laptop connected to hotspot — note IP with: ipconfig
+  [ ] Kali laptop connected to SAME hotspot
+  [ ] ESP32 USB plugged in and powered
+  [ ] Pico 2W USB plugged in and powered
+  [ ] STM32 Blue Pill connected to ST-Link (for power) + UART wires to Pico 2W
+  [ ] BOOT0 jumper on Blue Pill is at position 0 (run mode)
+  [ ] mosquitto-broker container is running: docker ps
+  [ ] node-red is running in CMD and dashboard loads in browser
+  [ ] mosquitto.conf is in SECURED mode (allow_anonymous false, acl_file present)
+  [ ] Kali laptop: attack scripts are in ~/iot-security-demo/
+  [ ] BROKER IP in spoof_attack.py and mitigation_test.py is updated to current hotspot IP
+  [ ] Arduino IDE open (for Serial Monitor if needed)
+  [ ] Browser open at: http://localhost:1880/dashboard
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1 — SYSTEM STARTUP  (~5 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Connect all devices to hotspot
+  → Turn on mobile hotspot (2.4GHz)
+  → Connect Windows laptop and Kali laptop to hotspot
+  → ESP32 and Pico 2W connect automatically on power-up
+  → Run on Windows CMD:
+      ipconfig
+  → Note the Wi-Fi adapter IPv4 Address (e.g. 10.x.x.x)
+  → If IP changed from last session, update it in:
+      esp32_main.ino   → mqtt_server variable → re-upload to ESP32
+      pico2w_main.py   → MQTT_BROKER variable → re-save to Pico as main.py
+      ~/iot-security-demo/spoof_attack.py   → BROKER variable
+      ~/iot-security-demo/mitigation_test.py → BROKER variable
+
+STEP 2: Start MQTT Broker on Windows
+  → Open CMD or PowerShell
+  → Run: docker ps
+  → Should show mosquitto-broker as "Up"
+  → If not running, start it:
+      docker start mosquitto-broker
+  → Verify config is SECURED before demo:
+      docker exec mosquitto-broker cat /mosquitto/config/mosquitto.conf
+      Should show: allow_anonymous false  and  acl_file present
+
+STEP 3: Start Node-RED on Windows
+  → Open a new CMD window
+  → Run: node-red
+  → Wait for: "Server now running at http://127.0.0.1:1880/"
+  → Open browser: http://localhost:1880/dashboard
+  → Dashboard should load and start showing live sensor data
+
+STEP 4: Power on ESP32
+  → Connect ESP32 via USB
+  → It auto-connects to WiFi and MQTT on boot
+  → Open Arduino IDE → Serial Monitor (115200 baud) to verify:
+      Should print: WiFi Connected ... MQTT Connected
+  → Temperature, Humidity, Gas data should appear on dashboard
+
+STEP 5: Power on Pico 2W
+  → Connect Pico 2W via USB
+  → It auto-runs main.py on boot
+  → Thonny Shell (or wait 10 seconds) → should print: WiFi connected → MQTT connected
+  → Water level data should appear on dashboard
+  → STM32 data (arm/status, arm/temperature, arm/panic) also flows
+    through Pico 2W via UART bridge automatically
+
+  NOTE: There is NO stm32_bridge.py script to run.
+        STM32 sends data via UART to Pico 2W which forwards it to MQTT.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2 — LIVE SYSTEM DEMONSTRATION  (~8 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 6: Show Dashboard to Faculty
+  → Open browser: http://localhost:1880/dashboard
+  → Walk faculty through each section:
+
+    SENSOR DATA (from ESP32):
+      Temperature & Humidity  → Live from DHT11 sensor on ESP32
+      Gas Level gauge (MQ-2)  → Real ADC value, alerts if gas detected
+
+    WATER MONITORING (from Pico 2W + HC-SR04):
+      Water Level %           → Real ultrasonic distance measurement
+
+    ARM NODE (STM32 via Pico 2W UART bridge):
+      ARM Status indicator    → ONLINE (green) / OFFLINE (red)
+      ARM Temperature         → STM32 internal temperature sensor
+
+    CONTROLS (from dashboard to devices):
+      ESP32 LED toggle        → Controls ESP32 onboard LED
+      Pico 2W LED toggle      → Controls Pico 2W onboard LED
+      STM32 LED toggle        → Commands go through Pico 2W to Blue Pill
+      Buzzer toggle (manual)  → Manual buzzer on/off from dashboard
+
+STEP 7: Demonstrate Sensor Readings Live
+  → Hold a warm hand or cup near DHT11 on ESP32
+      Dashboard temperature rises in real time
+  → Light a matchstick briefly near MQ-2 (1-2 seconds then blow out)
+      Gas gauge spikes
+      GAS ALERT banner appears on dashboard
+      Buzzer triggers automatically
+      Alert notification pops up
+  → Put your hand above HC-SR04 on Pico 2W
+      Water level % changes on dashboard
+
+STEP 8: Demonstrate Device Control from Dashboard
+  → Toggle ESP32 LED switch on dashboard
+      Physical LED on ESP32 turns ON and OFF
+  → Toggle Pico 2W LED switch on dashboard
+      Physical LED on Pico 2W turns ON and OFF
+  → Toggle STM32 LED switch on dashboard
+      Command flows: Dashboard → MQTT → Pico 2W → UART → Blue Pill → LED ON/OFF
+  → Toggle Manual Buzzer switch
+      Buzzer on ESP32 responds from dashboard command
+
+STEP 9: Demonstrate ARM Node (STM32 Blue Pill)
+  → Point to ARM Status = ONLINE (green) on dashboard
+  → Show ARM Temperature gauge updating with real value
+  → Press the physical panic button on STM32 Blue Pill
+      Dashboard shows: ARM PANIC BUTTON PRESSED alert
+      Toast notification appears on dashboard
+  → Briefly unplug ST-Link from Blue Pill
+      Dashboard ARM Status changes to OFFLINE (red) within a few seconds
+  → Plug ST-Link back in
+      Blue Pill reboots → status returns to ONLINE (green)
+
+  EXPLAIN TO FACULTY:
+    "STM32 is a Cortex-M3 ARM processor. It has no WiFi.
+     We bridge it to the Pico 2W using UART serial wiring.
+     Pico 2W receives the serial data and publishes it to MQTT over WiFi.
+     This demonstrates ARM programming and hardware interfacing."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3 — MQTT BROKER DEMONSTRATION  (~5 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 10: Show MQTT Broker Running
+  → Open CMD on Windows
+  → Run: docker ps
+  → Point out: mosquitto-broker container, Port 1883, Status Up
+  → Explain: "Mosquitto MQTT broker running inside Docker container
+              on this Windows machine. All IoT devices publish and
+              subscribe through this broker."
+
+STEP 11: Show Live MQTT Traffic
+  → Open a new CMD window on Windows
+  → Run:
+      docker exec -it mosquitto-broker mosquitto_sub -h localhost -p 1883 -u testuser -P testpass -t "#" -v
+  → Show all messages flowing in real time:
+      esp32/temp
+      esp32/hum
+      esp32/gas
+      esp32/gas/status
+      pico2/water/level
+      pico2/water/status
+      arm/temperature
+      arm/status
+  → Point out topic names and payload values
+  → Ctrl+C to stop
+
+STEP 12: Manual MQTT Publish from Command Line
+  → Open another CMD window
+  → Publish LED ON command:
+      docker exec -it mosquitto-broker mosquitto_pub -h localhost -p 1883 -u testuser -P testpass -t "esp32/led" -m "ON"
+  → Show ESP32 LED turning ON physically
+  → Publish LED OFF:
+      docker exec -it mosquitto-broker mosquitto_pub -h localhost -p 1883 -u testuser -P testpass -t "esp32/led" -m "OFF"
+  → Show LED turning OFF
+
+  EXPLAIN TO FACULTY:
+    "This is MQTT in action — pub/sub protocol. Any device or system
+     that knows the broker address and credentials can send commands
+     to physical hardware in real time."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 4 — SECURITY ATTACK DEMONSTRATION  (~8 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- PART A: SECURED SYSTEM — ATTACK FAILS ---
+
+STEP 13: Show Unauthorized Access Attempt (Kali → Secured Broker)
+  → Switch to Kali Linux laptop
+  → Try connecting WITHOUT any credentials:
+      mosquitto_sub -h <WINDOWS_IP> -p 1883 -t "#" -v
+  → Show: Connection Refused: not authorised
+  → Try with wrong password:
+      mosquitto_sub -h <WINDOWS_IP> -p 1883 -u testuser -P wrongpass -t "#" -v
+  → Show: Connection Refused: bad user name or password
+  → Try publishing fake data without credentials:
+      mosquitto_pub -h <WINDOWS_IP> -p 1883 -t "esp32/temp" -m "999"
+  → Show: Connection Refused: not authorised
+
+  EXPLAIN TO FACULTY:
+    "Our broker has authentication enabled — allow_anonymous is false.
+     The attacker cannot connect, cannot listen to sensor data,
+     and cannot inject any commands."
+
+--- PART B: SWITCH TO UNSECURED MODE FOR ATTACK DEMO ---
+
+STEP 14: Switch Broker to Unsecured Config (on Windows)
+  → Open: C:\Users\YOUR_USERNAME\mosquitto\config\mosquitto.conf  in Notepad
+  → Change line:  allow_anonymous false  →  allow_anonymous true
+  → Delete the line:  acl_file /mosquitto/config/acl
+  → Save the file
+  → In CMD run:
+      docker restart mosquitto-broker
+  → Wait 5-10 seconds for broker to restart and devices to reconnect
+
+  EXPLAIN TO FACULTY:
+    "Now we simulate a real-world misconfigured IoT deployment.
+     Many IoT products ship with authentication disabled by default.
+     We have done the same to show the impact."
+
+--- PART C: ATTACK RUNS SUCCESSFULLY ---
+
+STEP 15: Run Spoofing Attack from Kali
+  → On Kali terminal:
+      cd ~/iot-security-demo
+      python3 spoof_attack.py
+  → Watch the dashboard on Windows reacting:
+      Temperature jumps to fake high value (e.g. 99°C)
+      Gas ALERT triggered with fake high gas value
+      Water level drops to 0%
+      Buzzer activates from attacker command
+      LEDs toggled remotely by attacker
+
+  EXPLAIN TO FACULTY:
+    "The attacker now has FULL control of the smart home system.
+     They are injecting fake sensor readings — the dashboard shows
+     fake data that looks real. They triggered false alarms and
+     are controlling physical devices — LED, buzzer — remotely.
+     All of this without any credentials."
+
+STEP 16: Show Eavesdropping (Kali listening to all traffic)
+  → On Kali:
+      mosquitto_sub -h <WINDOWS_IP> -p 1883 -t "#" -v
+  → Show all sensor data, commands, and device responses visible to Kali
+  → EXPLAIN: "Without auth, any attacker on the network can read
+               all sensor data and monitor the entire smart home."
+
+--- PART D: MITIGATION —  SWITCH BACK TO SECURED ---
+
+STEP 17: Re-enable Authentication (on Windows)
+  → Open mosquitto.conf in Notepad again
+  → Change:  allow_anonymous true  →  allow_anonymous false
+  → Add back the line:  acl_file /mosquitto/config/acl
+  → Save the file
+  → In CMD:
+      docker restart mosquitto-broker
+  → Wait 5-10 seconds
+
+STEP 18: Show Attack is Now Blocked (Kali)
+  → Run mitigation test from Kali:
+      python3 mitigation_test.py
+  → Output should show: Connection REJECTED / not authorised
+  → Or retry the spoof attack:
+      python3 spoof_attack.py
+  → Attack is now blocked — dashboard shows real sensor values again
+
+  EXPLAIN TO FACULTY:
+    "Simply enabling authentication completely blocks the attacker.
+     The fix is straightforward — allow_anonymous false and a
+     password file. This is the mitigation.
+     The system now only accepts connections from authenticated clients."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 5 — SUMMARY & Q&A  (~4 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+POINTS TO HIGHLIGHT TO FACULTY:
+
+1. Three independent IoT nodes:
+   → ESP32 (temperature, humidity, gas, water, buzzer, LED)
+   → Pico 2W (HC-SR04 water level, LED, STM32 UART bridge)
+   → STM32 Blue Pill (ARM Cortex-M3, panic button, LED, internal temp)
+
+2. ARM Programming demonstrated:
+   → STM32 coded in C using Arduino IDE with STM32duino core
+   → Uploaded via ST-Link V2 programmer (SWD method)
+   → UART communication at 9600 baud between STM32 and Pico 2W
+   → Pico 2W acts as the WiFi/MQTT bridge for STM32
+
+3. Real sensor data:
+   → DHT11 (temp & humidity), MQ-2 (gas), HC-SR04 (water distance)
+   → All calibrated and publishing live values to MQTT
+
+4. MQTT protocol fully demonstrated:
+   → Mosquitto broker in Docker on Windows
+   → Pub/sub with topics, payloads, QoS
+   → Authentication with username/password and ACL file
+
+5. Security lifecycle shown:
+   → Secured system (auth ON) → attacker fails
+   → Unsecured system (auth OFF) → attacker spoofs data, controls hardware
+   → Mitigation applied → attack blocked
+   → Shows real-world impact of misconfigured IoT security
+
+6. Node-RED Dashboard:
+   → Running locally on Windows via Node.js
+   → Live gauges, charts, status indicators, control toggles
+   → All updating in real time via MQTT subscriptions
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUICK COMMAND REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WINDOWS CMD:
+
+  Check broker running:
+    docker ps
+
+  Start broker (if stopped):
+    docker start mosquitto-broker
+
+  Restart broker (after config change):
+    docker restart mosquitto-broker
+
+  Subscribe to all topics (monitoring):
+    docker exec -it mosquitto-broker mosquitto_sub -h localhost -p 1883 -u testuser -P testpass -t "#" -v
+
+  Publish ESP32 LED ON:
+    docker exec -it mosquitto-broker mosquitto_pub -h localhost -p 1883 -u testuser -P testpass -t "esp32/led" -m "ON"
+
+  Publish ESP32 LED OFF:
+    docker exec -it mosquitto-broker mosquitto_pub -h localhost -p 1883 -u testuser -P testpass -t "esp32/led" -m "OFF"
+
+  Start Node-RED:
+    node-red
+
+  Open dashboard:
+    http://localhost:1880/dashboard
+
+  Check current mosquitto config:
+    docker exec mosquitto-broker cat /mosquitto/config/mosquitto.conf
+
+──────────────────────────────────────────────────────────────
+
+KALI LINUX:
+
+  Attack — try without credentials (should FAIL on secured broker):
+    mosquitto_sub -h <WINDOWS_IP> -p 1883 -t "#" -v
+
+  Attack — try wrong password (should FAIL):
+    mosquitto_sub -h <WINDOWS_IP> -p 1883 -u testuser -P wrongpass -t "#" -v
+
+  Attack — try publish without credentials (should FAIL):
+    mosquitto_pub -h <WINDOWS_IP> -p 1883 -t "esp32/temp" -m "999"
+
+  Attack — spoofing script (on UNSECURED broker):
+    cd ~/iot-security-demo
+    python3 spoof_attack.py
+
+  Mitigation test — attack blocked (on SECURED broker):
+    python3 mitigation_test.py
+
+  Eavesdrop with valid credentials:
+    mosquitto_sub -h <WINDOWS_IP> -p 1883 -u testuser -P testpass -t "#" -v
+
+  Replace <WINDOWS_IP> with your current hotspot IP (ipconfig on Windows)
+
+──────────────────────────────────────────────────────────────
+
+MQTT CONFIG SWITCH REFERENCE:
+
+  SECURED CONFIG (normal operation):
+    allow_anonymous false
+    acl_file /mosquitto/config/acl
+    → docker restart mosquitto-broker
+
+  UNSECURED CONFIG (attack demo):
+    allow_anonymous true
+    (remove the acl_file line)
+    → docker restart mosquitto-broker
+
+  Config file location:
+    C:\Users\YOUR_USERNAME\mosquitto\config\mosquitto.conf
+
+──────────────────────────────────────────────────────────────
+
+MQTT TOPICS REFERENCE:
+
+  Topic                  Source    Description
+  ─────────────────────────────────────────────────────────────
+  esp32/temp             ESP32     Temperature in Celsius
+  esp32/hum              ESP32     Humidity percentage
+  esp32/gas              ESP32     MQ-2 raw ADC value
+  esp32/gas/status       ESP32     NORMAL or ALERT
+  esp32/led              Dashboard LED control command (ON/OFF)
+  esp32/buzzer           Dashboard Buzzer control command
+  pico2/water/level      Pico 2W   Water level percentage
+  pico2/water/status     Pico 2W   Water level status string
+  pico2/led              Dashboard Pico 2W LED control (ON/OFF)
+  arm/temperature        STM32     ARM internal temperature
+  arm/status             STM32     ONLINE or OFFLINE
+  arm/panic              STM32     Panic button pressed event
+  arm/led                Dashboard STM32 LED control via Pico bridge
+
+# ============================================================
+#                    END OF DEMO SCRIPT
+# ============================================================
