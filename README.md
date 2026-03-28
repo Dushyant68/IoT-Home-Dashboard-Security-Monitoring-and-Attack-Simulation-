@@ -14,8 +14,8 @@ Built with **ESP32**, **Raspberry Pi Pico 2W**, **STM32 ARM Blue Pill**, **Node-
       ▼
 [Pico 2W] ──── WiFi/MQTT ────┐
 [ESP32]   ──── WiFi/MQTT ────┤──► [Mosquitto Broker (Docker)] ──► [Node-RED Dashboard]
-                              │         Port 1883
-[Kali Linux] ── Attack ───────┘    (secured / unsecured)
+                             │         Port 1883
+[Kali Linux] ── Attack ──────┘    (secured / unsecured)
 ```
 
 ---
