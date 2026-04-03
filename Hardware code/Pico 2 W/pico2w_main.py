@@ -13,12 +13,11 @@ import ubinascii
 import machine
 
 # ─── Config ───────────────────────────────────────────────────
-WIFI_SSID     = "D"
-WIFI_PASSWORD = "987654321"
-MQTT_BROKER   = "10.99.206.76"
-MQTT_PORT     = 1883
-MQTT_USER     = "testuser"
-MQTT_PASSWORD = "testpass"
+WIFI_SSID   = "YOUR_HOTSPOT_NAME"
+WIFI_PASS   = "YOUR_HOTSPOT_PASSWORD"
+MQTT_BROKER = "YOUR_WINDOWS_IP"
+MQTT_USER   = "testuser"
+MQTT_PASS   = "YOUR_MQTT_PASSWORD"
 MQTT_CLIENT_ID = ubinascii.hexlify(machine.unique_id())
 
 # ─── Pins ─────────────────────────────────────────────────────
