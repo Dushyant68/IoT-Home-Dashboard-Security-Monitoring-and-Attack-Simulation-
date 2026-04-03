@@ -5,7 +5,7 @@ Continuously publishes fake data to override real sensor readings
 import paho.mqtt.client as mqtt
 import time
 
-BROKER_IP   = "10.246.143.76"
+BROKER_IP   = "YOUR_MACHINE_IP"
 BROKER_PORT = 1883  # Main broker (set allow_anonymous true first)
 
 connected = False
