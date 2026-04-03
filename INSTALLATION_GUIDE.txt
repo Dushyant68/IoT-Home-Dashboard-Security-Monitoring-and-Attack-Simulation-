@@ -260,9 +260,7 @@ Devices Used:
 
   Step 3 — Start Node-RED (run this each time you need it):
     Open any Command Prompt window and type:
-```
-node-red
-```
+      node-red
     Keep this window open while working — closing it stops Node-RED.
 
   Step 4 — Access Node-RED editor:
