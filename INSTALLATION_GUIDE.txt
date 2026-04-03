@@ -1,11 +1,11 @@
 ╔══════════════════════════════════════════════════════════════════════════════════╗
-║       IoT Home Dashboard — Security Monitoring & Attack Simulation             ║
-║                     COMPLETE INSTALLATION GUIDE                                ║
-║                        From Basics to Full Setup                               ║
+║       IoT Home Dashboard — Security Monitoring & Attack Simulation               ║
+║                     COMPLETE INSTALLATION GUIDE                                  ║
+║                        From Basics to Full Setup                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════════╝
 
-GitHub Repo : https://github.com/YOUR_USERNAME/IoT-Home-Dashboard-Security-Monitoring-and-Attack-Simulation-Public
-Last Updated: March 2026
+GitHub Repo : https://github.com/Dushyant68/IoT-Home-Dashboard-Security-Monitoring-and-Attack-Simulation-Public
+Last Updated: April 2026
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TABLE OF CONTENTS
@@ -86,7 +86,7 @@ Devices Used:
   ✔ ST-Link V2 programmer (for STM32 upload only)
 
   [Components]
-  ✔ LEDs (x5 minimum) + 220 Ohm Resistors
+  ✔ LEDs (x2 minimum) + 220 Ohm Resistors (x3 minimum)
   ✔ Push Button Switches (x2 minimum)
   ✔ Breadboards (x2)
   ✔ Jumper Wires (Male-Male, Male-Female)
@@ -94,15 +94,15 @@ Devices Used:
   ✔ Active Buzzer (for ESP32)
 
   [Sensors]
-  ✔ DHT11 or DHT22    → Temperature and Humidity
-  ✔ MQ-2 or MQ-135   → Gas / Air Quality Sensor
-  ✔ Water Sensor Module
-  ✔ 16x2 I2C LCD     → Local display (optional)
+  ✔ DHT11 or DHT22     →  Temperature and Humidity
+  ✔ MQ-2 or MQ-135     →  Gas / Air Quality Sensor
+  ✔ HC-SR04 Ultrasonic →  Water Sensor Module
+  ✔ 16x2 I2C LCD       →  Local display (optional)
 
   [Machines]
-  ✔ Windows Laptop/PC  → Main server machine
-  ✔ Kali Linux Laptop  → Attacker machine (dual boot or native)
-  ✔ Mobile phone       → Hotspot for network (2.4GHz)
+  ✔ Windows Laptop/PC  →  Main server machine
+  ✔ Kali Linux Laptop  →  Attacker machine (dual boot or native)
+  ✔ Mobile phone       →  Hotspot for network (2.4GHz)
 
   [Network Note]
   All devices must be on the SAME network.
@@ -260,7 +260,9 @@ Devices Used:
 
   Step 3 — Start Node-RED (run this each time you need it):
     Open any Command Prompt window and type:
-      node-red
+```
+node-red
+```
     Keep this window open while working — closing it stops Node-RED.
 
   Step 4 — Access Node-RED editor:
