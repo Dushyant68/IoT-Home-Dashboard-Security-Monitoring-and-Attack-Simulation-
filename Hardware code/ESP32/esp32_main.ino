@@ -5,12 +5,12 @@
 #include <LiquidCrystal_I2C.h>
 
 // ─── Config ───────────────────────────────────────────────────
-const char* ssid        = "D";
-const char* password    = "987654321";
-const char* mqtt_server = "10.99.206.76";
+const char* ssid        = "YOUR_HOTSPOT_NAME";
+const char* password    = "YOUR_HOTSPOT_PASSWORD";
+const char* mqtt_server = "YOUR_MACHINE_IP";
 const int   mqtt_port   = 1883;
 const char* mqtt_user   = "testuser";
-const char* mqtt_pass   = "testpass";
+const char* mqtt_pass   = "YOUR_MQTT_PASSWORD";
 
 // ─── Pins ─────────────────────────────────────────────────────
 #define DHTPIN        4
