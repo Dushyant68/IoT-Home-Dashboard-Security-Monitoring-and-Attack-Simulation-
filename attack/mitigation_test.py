@@ -11,7 +11,7 @@ Usage:
 import paho.mqtt.client as mqtt
 import time
 
-BROKER_IP   = "10.244.221.76"  # Change to your main laptop IP
+BROKER_IP   = "YOUR_MACHINE_IP"  # Change to your main laptop IP
 BROKER_PORT = 1883              # Secured broker port
 
 connected = False
