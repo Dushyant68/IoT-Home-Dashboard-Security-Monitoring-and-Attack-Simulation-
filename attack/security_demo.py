@@ -51,7 +51,7 @@
 #
 #  Step 1: Attacker tries to subscribe without credentials
 #
-#      mosquitto_sub -h 10.244.221.76 -p 1883 -t "capstone/#" -v
+#      mosquitto_sub -h YOUR_MACHINE_IP -p 1883 -t "capstone/#" -v
 #
 #  Expected result:
 #      Connection Refused: not authorised
@@ -60,7 +60,7 @@
 #
 #  Step 2: Attacker tries with wrong password
 #
-#      mosquitto_sub -h 10.244.221.76 -p 1883 -u testuser -P wrongpass -t "capstone/#" -v
+#      mosquitto_sub -h YOUR_MACHINE_IP -p 1883 -u testuser -P wrongpass -t "capstone/#" -v
 #
 #  Expected result:
 #      Connection Refused: bad user name or password
@@ -69,7 +69,7 @@
 #
 #  Step 3: Attacker tries to publish without credentials
 #
-#      mosquitto_pub -h 10.244.221.76 -p 1883 -t "esp32/temp" -m "999"
+#      mosquitto_pub -h YOUR_MACHINE_IP -p 1883 -t "esp32/temp" -m "999"
 #
 #  Expected result:
 #      Connection Refused: not authorised
@@ -105,7 +105,7 @@ import random
 
 # !! For attack demo use the UNSECURED broker port (1884) !!
 # After demo switch back to secured 1883
-BROKER_IP   = "10.244.221.76"  # Main laptop IP
+BROKER_IP   = "YOUR_MACHINE_IP"  # Main laptop IP
 BROKER_PORT = 1884              # Unsecured broker port for demo
 
 def on_connect(client, userdata, flags, rc):
@@ -215,7 +215,7 @@ client.disconnect()
 import paho.mqtt.client as mqtt2
 import time
 
-BROKER_IP   = "10.244.221.76"
+BROKER_IP   = "YOUR_MACHINE_IP"
 BROKER_PORT = 1883  # Secured broker
 
 def on_connect_secured(client, userdata, flags, rc):
