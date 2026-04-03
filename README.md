@@ -85,7 +85,7 @@ Short version:
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/IoT-Home-Dashboard-Security-Monitoring-and-Attack-Simulation-Public.git
+   git clone https://github.com/Dushyant68/IoT-Home-Dashboard-Security-Monitoring-and-Attack-Simulation-Public.git
    ```
 
 2. **Start Mosquitto broker (Docker)**
